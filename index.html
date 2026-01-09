@@ -1791,7 +1791,7 @@
         // FUNCIÓN RESTAURADA PARA CARGAR DATOS JUVENILES
         async function loadYouthCompetitionData() {
             try {
-                const response = await fetch('https://www.tusoccermanager.com/h62-listofhonoursdatabaseyouthteams-html');
+                const response = await fetch('https://www.tusoccermanager.com/h62-morecompetitionslistofhonoursdb-html');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const html = await response.text();
                 const parser = new DOMParser();
