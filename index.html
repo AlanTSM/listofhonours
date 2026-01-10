@@ -9,8 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary-color: #1a365d;
-            --primary-light: #2d4a7c;
+            --primary-color: #2c3e50; /* Cambiado a color del modo simple */
+            --primary-light: #34495e;
             --secondary-color: #f8fafc;
             --accent-color: #e53e3e;
             --accent-hover: #c53030;
@@ -26,7 +26,7 @@
             --hover-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
             --transition-speed: 0.3s;
             --season-header-start: #a0aec0;
-            --season-header-end: #1a365d;
+            --season-header-end: #2c3e50;
         }
 
         * {
@@ -245,7 +245,7 @@
 
         .search-input:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
         }
 
         .suggestions {
@@ -462,7 +462,7 @@
         .team-selector select:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
         }
 
         .info {
@@ -853,15 +853,15 @@
 
         @keyframes pulse {
             0% {
-                box-shadow: 0 0 0 0 rgba(26, 54, 93, 0.4);
+                box-shadow: 0 0 0 0 rgba(44, 62, 80, 0.4);
             }
 
             70% {
-                box-shadow: 0 0 0 10px rgba(26, 54, 93, 0);
+                box-shadow: 0 0 0 10px rgba(44, 62, 80, 0);
             }
 
             100% {
-                box-shadow: 0 0 0 0 rgba(26, 54, 93, 0);
+                box-shadow: 0 0 0 0 rgba(44, 62, 80, 0);
             }
         }
 
@@ -946,7 +946,7 @@
 
         .comparison-input:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
         }
 
         .vs-text {
@@ -1220,6 +1220,10 @@
             color: var(--primary-color);
             cursor: pointer;
             transition: all var(--transition-speed) ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .tab-button.active {
@@ -1245,6 +1249,15 @@
         canvas {
             max-width: 100%;
             height: auto;
+        }
+
+        /* Estilos para iconos de competiciones en logros */
+        .competition-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 0.7rem;
+            vertical-align: middle;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -1396,11 +1409,20 @@
         <div class="modal-content">
             <span class="close fas fa-times" onclick="closeModal('teams-modal')"></span>
             <div class="tabs">
-                <button onclick="showTab('clubs')" class="tab-button active">Lista de clubes</button>
-                <button onclick="showTab('managers')" class="tab-button">Lista de mánagers</button>
-                <button onclick="showTab('selections')" class="tab-button">Lista de selecciones</button>
+                <button onclick="showTab('clubs')" class="tab-button active">
+                    <i class="fas fa-futbol"></i>
+                    <span>Lista de clubes</span>
+                </button>
+                <button onclick="showTab('managers')" class="tab-button">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Lista de mánagers</span>
+                </button>
+                <button onclick="showTab('selections')" class="tab-button">
+                    <i class="fas fa-globe"></i>
+                    <span>Lista de selecciones</span>
+                </button>
             </div>
-            <input type="text" id="entities-search" class="search-input" placeholder="Buscar..." oninput="filterEntities()" />
+            <input type="text" id="entities-search" class="search-input" placeholder="Buscar entre X clubes..." oninput="filterEntities()" />
             <ul id="entities-list" class="teams-list"></ul>
         </div>
     </div>
@@ -1447,10 +1469,10 @@
             { id: "recopa-de-europa", name: "Recopa de Europa" },
             { id: "supercopa-1ª", name: "Supercopa 1ª" },
             { id: "supercopa-2ª", name: "Supercopa 2ª" },
-            { id: "supercopa-de-alemania", name: "Supercopa de alemania" },
-            { id: "supercopa-de-españa", name: "Supercopa de españa" },
+            { id: "supercopa-de-alemania", name: "Supercopa de Alemania" },
+            { id: "supercopa-de-españa", name: "Supercopa de España" },
             { id: "supercopa-de-europa", name: "Supercopa de Europa" },
-            { id: "supercopa-de-francia", name: "Supercopa de francia" },
+            { id: "supercopa-de-francia", name: "Supercopa de Francia" },
             { id: "supercopa-de-inglaterra", name: "Supercopa de Inglaterra" },
             { id: "supercopa-de-italia", name: "Supercopa de Italia" },
             { id: "supercopa-de-resto-de-europa", name: "Supercopa de resto de Europa" },
@@ -1475,6 +1497,7 @@
             { id: "liga-española-de-filiales", name: "Liga española de filiales" },
             { id: "liga-francesa-de-filiales", name: "Liga francesa de filiales" },
             { id: "liga-inglesa-de-filiales", name: "Liga inglesa de filiales" },
+            { id: "liga-italiana-de-filiales", name: "Liga italiana de filiales" },
             { id: "liga-norteamericana-de-filiales", name: "Liga norteamericana de filiales" },
             { id: "liga-de-resto-de-europa-de-filiales", name: "Liga de resto de Europa de filiales" },
             { id: "liga-sudamericana-de-filiales", name: "Liga sudamericana de filiales" },
@@ -1489,6 +1512,7 @@
 
         let selectedSuggestionIndex = -1;
         let shieldsMap = {};
+        let competitionShieldsMap = {}; // Nuevo mapa para escudos de competiciones
 
         const allTeams = [
             "Bayer Leverkusen", "Bayern de Múnich", "Borussia Dortmund", "Borussia Mönchengladbach", "Colonia", "Eintracht Frankfurt", "Friburgo", "Hamburgo", "Hannover 96", "Hoffenheim", "RB Leipzig", "Núremberg", "Schalke 04", "Stuttgart", "Werder Bremen", "Wolfsburgo", "Boca Juniors", "Estudiantes de La Plata", "River Plate", "RB Salzburgo", "Anderlecht", "Internacional", "Santos", "São Paulo", "Toronto", "Colo-Colo", "Once Caldas", "Copenhague", "Liga de Quito", "Celtic", "Rangers", "Athletic Club", "Atlético de Madrid", "Barcelona", "Deportivo de la Coruña", "Espanyol", "Getafe", "Levante", "Málaga", "Mallorca", "Osasuna", "Real Madrid", "Real Sociedad", "Sevilla", "Valencia", "Villarreal", "Colorado Rapids", "DC United", "Los Angeles Galaxy", "New England Revolution", "New York Red Bulls", "Auxerre", "Évian", "Girondins de Burdeos", "Lille", "Mónaco", "Montpellier", "Nancy", "Olympique de Lyon", "Olympique de Marsella", "PSG", "Saint-Étienne", "Sochaux", "Stade Rennes", "Toulouse", "Valenciennes", "Olympiakos", "Panathinaikos", "Arsenal", "Aston Villa", "Chelsea", "Everton", "Fulham", "Leicester City", "Liverpool", "Manchester City", "Manchester United", "Newcastle United", "Norwich City", "Southampton", "Stoke City", "Sunderland", "Swansea City", "Tottenham Hotspur", "West Bromwich Albion", "Atalanta", "Bolonia", "Catania", "Chievo de Verona", "Fiorentina", "Génova", "Inter de Milán", "Juventus", "Lazio", "Milan", "Nápoles", "Palermo", "Parma", "Roma", "Sampdoria", "Udinese", "Club América", "Atlas", "Cruz Azul", "Monterrey", "Pachuca", "Tigres", "Ajax", "AZ", "Feyenoord", "PSV", "Twente", "Benfica", "Oporto", "Sporting de Lisboa", "Braga", "Anzhí Majachkalá", "CSKA de Moscú", "Rubin Kazan", "Spartk de Moscú", "Zenit", "Basilea", "Galatasaray", "Fenerbahçe", "Dínamo de Kiev", "Shakhtar Donetsk", "Nacional", "Peñarol", "Caracas"
@@ -1511,14 +1535,30 @@
                 const doc = parser.parseFromString(html, 'text/html');
                 const shieldsList = doc.querySelectorAll('#shields-list li');
                 shieldsMap = {};
+                competitionShieldsMap = {};
+                
                 shieldsList.forEach(li => {
-                    const [team, url] = li.textContent.split(': ');
-                    shieldsMap[team.trim()] = url.trim();
+                    const text = li.textContent.trim();
+                    const separatorIndex = text.indexOf(': ');
+                    if (separatorIndex === -1) return;
+                    
+                    const name = text.substring(0, separatorIndex).trim();
+                    const url = text.substring(separatorIndex + 2).trim();
+                    
+                    // Verificar si es una competición
+                    const isCompetition = competitions.some(comp => comp.name === name);
+                    
+                    if (isCompetition) {
+                        competitionShieldsMap[name] = url;
+                    } else {
+                        shieldsMap[name] = url;
+                    }
                 });
-                return shieldsMap;
+                
+                return { shieldsMap, competitionShieldsMap };
             } catch (error) {
                 console.error('Error al cargar la base de datos de escudos:', error);
-                return {};
+                return { shieldsMap: {}, competitionShieldsMap: {} };
             }
         }
 
@@ -1735,7 +1775,10 @@
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-            shieldsMap = await loadShieldsDatabase();
+            const { shieldsMap: loadedShields, competitionShieldsMap: loadedCompetitionShields } = await loadShieldsDatabase();
+            shieldsMap = loadedShields;
+            competitionShieldsMap = loadedCompetitionShields;
+            
             const container = document.getElementById("competitions-container");
             competitions.forEach(comp => {
                 container.insertAdjacentHTML("beforeend", createCompetitionSection(comp.id, comp.name));
@@ -1807,6 +1850,7 @@
                     "liga-española-de-filiales": "liga-española-de-filiales-data",
                     "liga-francesa-de-filiales": "liga-francesa-de-filiales-data",
                     "liga-inglesa-de-filiales": "liga-inglesa-de-filiales-data",
+                    "liga-italiana-de-filiales": "liga-italiana-de-filiales-data",
                     "liga-norteamericana-de-filiales": "liga-norteamericana-de-filiales-data",
                     "liga-de-resto-de-europa-de-filiales": "liga-de-resto-de-europa-de-filiales-data",
                     "liga-sudamericana-de-filiales": "liga-sudamericana-de-filiales-data",
@@ -2066,13 +2110,15 @@
                 if (champ.length > 0) {
                     const champSeasons = formatSeasons(champ.sort((a, b) => parseInt(a) - parseInt(b)));
                     const li = document.createElement('li');
-                    li.innerHTML = `<strong>${champ.length} ${compName}</strong>: ${champSeasons}`;
+                    const compShield = competitionShieldsMap[compName] || 'https://2img.net/i.imgur.com/Kz20esO.png';
+                    li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${compName}"><strong>${champ.length} ${compName}</strong>: ${champSeasons}`;
                     champList.appendChild(li);
                 }
                 if (runner.length > 0) {
                     const runnerSeasons = formatSeasons(runner.sort((a, b) => parseInt(a) - parseInt(b)));
                     const li = document.createElement('li');
-                    li.innerHTML = `<strong>${runner.length} ${compName}</strong>: ${runnerSeasons}`;
+                    const compShield = competitionShieldsMap[compName] || 'https://2img.net/i.imgur.com/Kz20esO.png';
+                    li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${compName}"><strong>${runner.length} ${compName}</strong>: ${runnerSeasons}`;
                     runnerList.appendChild(li);
                 }
             });
@@ -2137,13 +2183,15 @@
                 if (champ.length > 0) {
                     const champSeasons = formatSeasons(champ.sort((a, b) => parseInt(a) - parseInt(b)));
                     const li = document.createElement('li');
-                    li.innerHTML = `<strong>${champ.length} ${compName}</strong>: ${champSeasons}`;
+                    const compShield = competitionShieldsMap[compName] || 'https://2img.net/i.imgur.com/Kz20esO.png';
+                    li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${compName}"><strong>${champ.length} ${compName}</strong>: ${champSeasons}`;
                     champList.appendChild(li);
                 }
                 if (runner.length > 0) {
                     const runnerSeasons = formatSeasons(runner.sort((a, b) => parseInt(a) - parseInt(b)));
                     const li = document.createElement('li');
-                    li.innerHTML = `<strong>${runner.length} ${compName}</strong>: ${runnerSeasons}`;
+                    const compShield = competitionShieldsMap[compName] || 'https://2img.net/i.imgur.com/Kz20esO.png';
+                    li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${compName}"><strong>${runner.length} ${compName}</strong>: ${runnerSeasons}`;
                     runnerList.appendChild(li);
                 }
             });
@@ -2173,10 +2221,21 @@
             const buttons = document.querySelectorAll('.tab-button');
             buttons.forEach(button => {
                 button.classList.remove('active');
-                if (button.textContent.includes(tab === 'clubs' ? 'clubes' : tab === 'managers' ? 'mánagers' : 'selecciones')) {
+                if (button.querySelector('span').textContent.includes(tab === 'clubs' ? 'clubes' : tab === 'managers' ? 'mánagers' : 'selecciones')) {
                     button.classList.add('active');
                 }
             });
+            
+            // Actualizar el placeholder según la pestaña
+            const searchInput = document.getElementById('entities-search');
+            if (tab === 'clubs') {
+                searchInput.placeholder = `Buscar entre ${allTeams.length} clubes...`;
+            } else if (tab === 'managers') {
+                searchInput.placeholder = `Buscar entre ${allManagers.length} mánagers...`;
+            } else if (tab === 'selections') {
+                searchInput.placeholder = `Buscar entre ${allSelections.length} selecciones...`;
+            }
+            
             filterEntities();
         }
 
