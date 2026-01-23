@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary-color: #2c3e50; /* Cambiado a color del modo simple */
+            --primary-color: #2c3e50;
             --primary-light: #34495e;
             --secondary-color: #f8fafc;
             --accent-color: #e53e3e;
@@ -27,6 +27,32 @@
             --transition-speed: 0.3s;
             --season-header-start: #a0aec0;
             --season-header-end: #2c3e50;
+            --bg-color: #f1f5f9;
+            --surface-color: #ffffff;
+            --text-color: #2d3748;
+            --text-secondary: #4a5568;
+            --header-bg: #2c3e50;
+        }
+
+        body.dark-mode {
+            --bg-color: #121826;
+            --surface-color: #1e293b;
+            --text-color: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --header-bg: #0f172a;
+            --primary-color: #60a5fa;
+            --primary-light: #3b82f6;
+            --secondary-color: #1e293b;
+            --light-bg: #1e293b;
+            --dark-text: #e2e8f0;
+            --light-text: #f1f5f9;
+            --season-header-start: #334155;
+            --season-header-end: #475569;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3);
+            --hover-shadow: 0 10px 15px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2);
+            --highlight-champion: rgba(255, 215, 0, 0.2);
+            --highlight-runnerup: rgba(192, 192, 192, 0.2);
         }
 
         * {
@@ -37,9 +63,10 @@
         }
 
         body {
-            background-color: #f1f5f9;
-            color: var(--dark-text);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             line-height: 1.6;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
         .container {
@@ -49,7 +76,7 @@
         }
 
         header {
-            background-color: var(--primary-color);
+            background-color: var(--header-bg);
             color: var(--light-text);
             padding: 1rem 0;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -127,7 +154,7 @@
             position: absolute;
             top: 100%;
             left: 0;
-            background-color: var(--light-bg);
+            background-color: var(--surface-color);
             box-shadow: var(--card-shadow);
             z-index: 90;
             padding: 1rem;
@@ -221,6 +248,27 @@
             transform: translateX(3px);
         }
 
+        .dark-mode-toggle {
+            background: transparent;
+            border: none;
+            color: var(--light-text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-left: 1rem;
+            transition: transform var(--transition-speed) ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
         .search-container {
             position: relative;
             width: 400px;
@@ -241,6 +289,8 @@
             background-repeat: no-repeat;
             background-position: 0.7rem center;
             background-size: 1.2rem;
+            background-color: var(--surface-color);
+            color: var(--text-color);
         }
 
         .search-input:focus {
@@ -256,7 +306,7 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            background-color: var(--light-bg);
+            background-color: var(--surface-color);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             max-height: 300px;
@@ -271,16 +321,16 @@
             cursor: pointer;
             transition: background-color var(--transition-speed) ease;
             border-bottom: 1px solid var(--border-color);
-            color: #333;
+            color: var(--text-color);
         }
 
         .suggestions li:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: rgba(0, 0, 0, 0.03);
         }
 
         .suggestions li:hover,
         .suggestions li.selected {
-            background-color: #e2e8f0;
+            background-color: rgba(66, 153, 225, 0.1);
         }
 
         .suggestions.visible {
@@ -299,10 +349,11 @@
             padding: 0.5rem;
             cursor: pointer;
             transition: background-color var(--transition-speed) ease;
+            color: var(--text-color);
         }
 
         .teams-list li:hover {
-            background-color: #e2e8f0;
+            background-color: rgba(66, 153, 225, 0.1);
         }
 
         .cards-container {
@@ -313,7 +364,7 @@
         }
 
         .card {
-            background-color: var(--light-bg);
+            background-color: var(--surface-color);
             border-radius: 10px;
             box-shadow: var(--card-shadow);
             padding: 1.5rem;
@@ -398,7 +449,7 @@
         }
 
         .competition {
-            background-color: var(--light-bg);
+            background-color: var(--surface-color);
             border-radius: 10px;
             box-shadow: var(--card-shadow);
             margin-bottom: 2rem;
@@ -448,8 +499,8 @@
             font-size: 0.9rem;
             border-radius: 6px;
             border: 1px solid var(--border-color);
-            background-color: var(--light-bg);
-            color: var(--dark-text);
+            background-color: var(--surface-color);
+            color: var(--text-color);
             margin-right: 1rem;
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232d3748' width='18px' height='18px'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
@@ -476,7 +527,7 @@
             border-collapse: separate;
             border-spacing: 0;
             margin-bottom: 1.5rem;
-            background-color: var(--light-bg);
+            background-color: var(--surface-color);
             font-size: 0.9rem;
             border-radius: 8px;
             overflow: hidden;
@@ -489,6 +540,7 @@
             padding: 1rem 1.2rem;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
         }
 
         th {
@@ -512,7 +564,7 @@
         }
 
         td:first-child {
-            background-color: var(--light-bg);
+            background-color: var(--surface-color);
         }
 
         .team-cell,
@@ -564,7 +616,7 @@
         }
 
         .ranking-table {
-            background-color: var(--light-bg);
+            background-color: var(--surface-color);
             padding: 1.5rem;
             border-radius: 10px;
             box-shadow: var(--card-shadow);
@@ -668,7 +720,7 @@
         }
 
         .modal-content {
-            background: var(--light-bg);
+            background: var(--surface-color);
             padding: 2rem;
             border-radius: 10px;
             max-width: 650px;
@@ -704,6 +756,29 @@
             background-color: rgba(0, 0, 0, 0.05);
         }
 
+        .copy-achievements {
+            position: absolute;
+            top: 1rem;
+            right: 4rem;
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform var(--transition-speed) ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .copy-achievements:hover {
+            transform: scale(1.1);
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
         .achievements-scroll {
             max-height: 400px;
             overflow-y: auto;
@@ -715,7 +790,7 @@
         }
 
         .achievements-scroll::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: var(--secondary-color);
             border-radius: 4px;
         }
 
@@ -730,8 +805,10 @@
 
         #achievements-list-champ,
         #achievements-list-runner,
+        #achievements-list-records,
         #manager-achievements-list-champ,
-        #manager-achievements-list-runner {
+        #manager-achievements-list-runner,
+        #manager-achievements-list-records {
             list-style: none;
             padding: 0;
             margin: 1rem 0 1.5rem;
@@ -739,11 +816,13 @@
 
         #achievements-list-champ li,
         #achievements-list-runner li,
+        #achievements-list-records li,
         #manager-achievements-list-champ li,
-        #manager-achievements-list-runner li {
+        #manager-achievements-list-runner li,
+        #manager-achievements-list-records li {
             margin: 0.7rem 0;
             font-size: 1rem;
-            color: var(--dark-text);
+            color: var(--text-color);
             padding: 0.7rem 1rem;
             background-color: var(--secondary-color);
             border-radius: 6px;
@@ -760,6 +839,11 @@
         #achievements-list-runner li:hover,
         #manager-achievements-list-runner li:hover {
             background-color: var(--highlight-runnerup);
+        }
+
+        #achievements-list-records li:hover,
+        #manager-achievements-list-records li:hover {
+            background-color: rgba(255, 215, 0, 0.1);
         }
 
         #achievements-list-champ li::before,
@@ -780,6 +864,24 @@
             font-size: 0.9rem;
             margin-right: 0.7rem;
             color: var(--primary-color);
+        }
+
+        #achievements-list-records li::before,
+        #manager-achievements-list-records li::before {
+            content: '\f02e';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 0.9rem;
+            margin-right: 0.7rem;
+            color: #ff9800;
+        }
+
+        .record-shared-note {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-top: 0.5rem;
+            padding-left: 1.7rem;
         }
 
         .modal-content h2 {
@@ -814,6 +916,12 @@
         #manager-runnerups-count::before {
             content: '\f5a2';
             color: var(--primary-color);
+        }
+
+        #team-records-count::before,
+        #manager-records-count::before {
+            content: '\f02e';
+            color: #ff9800;
         }
 
         .back-to-top {
@@ -855,11 +963,9 @@
             0% {
                 box-shadow: 0 0 0 0 rgba(44, 62, 80, 0.4);
             }
-
             70% {
                 box-shadow: 0 0 0 10px rgba(44, 62, 80, 0);
             }
-
             100% {
                 box-shadow: 0 0 0 0 rgba(44, 62, 80, 0);
             }
@@ -898,7 +1004,7 @@
         }
 
         .competition-card {
-            background: var(--light-bg);
+            background: var(--surface-color);
             border-radius: 8px;
             padding: 1rem;
             box-shadow: var(--card-shadow);
@@ -924,6 +1030,7 @@
         .competition-card p {
             font-size: 0.9rem;
             margin: 0.3rem 0;
+            color: var(--text-color);
         }
 
         .comparison-container {
@@ -942,6 +1049,8 @@
             outline: none;
             transition: all var(--transition-speed) ease;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            background-color: var(--surface-color);
+            color: var(--text-color);
         }
 
         .comparison-input:focus {
@@ -994,7 +1103,7 @@
             justify-content: space-between;
             margin-top: 0.5rem;
             font-size: 0.9rem;
-            color: var(--dark-text);
+            color: var(--text-color);
         }
 
         .comparison-legend span {
@@ -1037,7 +1146,7 @@
             display: none;
             margin-top: 1rem;
             padding: 1rem;
-            background-color: var(--light-bg);
+            background-color: var(--surface-color);
             border-radius: 8px;
             box-shadow: var(--card-shadow);
         }
@@ -1072,105 +1181,6 @@
             font-weight: bold;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 1200px) {
-            .menu-content {
-                width: 90vw;
-                max-width: 1000px;
-            }
-
-            .menu-section.senior ul {
-                column-count: 3;
-            }
-        }
-
-        @media (max-width: 991px) {
-            .cards-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .header-content {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .search-container {
-                width: 100%;
-                margin-top: 1rem;
-            }
-
-            .menu-content {
-                flex-direction: column;
-                max-height: 70vh;
-                overflow-y: auto;
-            }
-
-            .menu-section {
-                width: 100% !important;
-                margin-bottom: 1.5rem;
-            }
-
-            .menu-section.senior ul {
-                column-count: 2;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .cards-container {
-                grid-template-columns: 1fr;
-            }
-
-            .rankings-container {
-                grid-template-columns: 1fr;
-            }
-
-            .header-content {
-                padding: 0 1rem;
-            }
-
-            .slideshow-controls {
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-            }
-
-            .comparison-container {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            .comparison-input {
-                width: 100%;
-            }
-        }
-
         .season-input-container {
             display: flex;
             align-items: center;
@@ -1184,6 +1194,8 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             text-align: center;
+            background-color: var(--surface-color);
+            color: var(--text-color);
         }
 
         .season-input-container button {
@@ -1196,15 +1208,6 @@
             align-items: center;
             gap: 1rem;
             flex-wrap: nowrap;
-        }
-
-        @media (max-width: 768px) {
-            .slideshow-controls {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                flex-wrap: nowrap;
-            }
         }
 
         .tabs {
@@ -1234,7 +1237,7 @@
         .evolution-container {
             margin-top: 1.5rem;
             padding: 1.5rem;
-            background-color: var(--light-bg);
+            background-color: var(--surface-color);
             border-radius: 10px;
             box-shadow: var(--card-shadow);
             transition: all var(--transition-speed) ease;
@@ -1246,18 +1249,180 @@
             margin-bottom: 1rem;
         }
 
+        .evolution-speed-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .speed-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .speed-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .edition-indicator {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-left: auto;
+            background-color: var(--secondary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+
         canvas {
             max-width: 100%;
             height: auto;
         }
 
-        /* Estilos para iconos de competiciones en logros */
         .competition-icon {
             width: 24px;
             height: 24px;
             margin-right: 0.7rem;
             vertical-align: middle;
             border-radius: 4px;
+        }
+
+        footer {
+            background-color: var(--surface-color);
+            border-top: 1px solid var(--border-color);
+            padding: 2rem;
+            margin-top: 3rem;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color var(--transition-speed) ease;
+            font-size: 1rem;
+        }
+
+        .footer-link:hover {
+            color: var(--accent-color);
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 1200px) {
+            .menu-content {
+                width: 90vw;
+                max-width: 1000px;
+            }
+            .menu-section.senior ul {
+                column-count: 3;
+            }
+        }
+
+        @media (max-width: 991px) {
+            .cards-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .header-content {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .search-container {
+                width: 100%;
+                margin-top: 1rem;
+            }
+            .menu-content {
+                flex-direction: column;
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+            .menu-section {
+                width: 100% !important;
+                margin-bottom: 1.5rem;
+            }
+            .menu-section.senior ul {
+                column-count: 2;
+            }
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            .rankings-container {
+                grid-template-columns: 1fr;
+            }
+            .header-content {
+                padding: 0 1rem;
+            }
+            .slideshow-controls {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+            .comparison-container {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .comparison-input {
+                width: 100%;
+            }
+            .slideshow-controls {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                flex-wrap: nowrap;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -1287,12 +1452,17 @@
             
             <h1 onclick="location.reload()">Palmarés de TSM</h1>
             
-            <div class="search-container">
-                <button title="Listas" id="teams-button" class="btn" onclick="openTeamsModal()">
-                    <i class="fas fa-futbol"></i>
+            <div style="display: flex; align-items: center;">
+                <div class="search-container">
+                    <button title="Listas" id="teams-button" class="btn" onclick="openTeamsModal()">
+                        <i class="fas fa-futbol"></i>
+                    </button>
+                    <input type="text" id="search-input" class="search-input" placeholder="Buscar" />
+                    <ul id="suggestions" class="suggestions"></ul>
+                </div>
+                <button class="dark-mode-toggle" id="dark-mode-toggle" title="Alternar modo oscuro">
+                    <i class="fas fa-moon"></i>
                 </button>
-                <input type="text" id="search-input" class="search-input" placeholder="Buscar" />
-                <ul id="suggestions" class="suggestions"></ul>
             </div>
         </div>
     </header>
@@ -1373,10 +1543,29 @@
         <div id="competitions-container"></div>
     </div>
     
+    <footer>
+        <div class="footer-links">
+            <a href="#" class="footer-link" onclick="showSeasonsModal(); return false;">
+                <i class="fas fa-calendar-alt"></i>
+                <span>¿Cuándo se disputó cada temporada?</span>
+            </a>
+            <a href="#" class="footer-link" onclick="showTeamOfYearModal(); return false;">
+                <i class="fas fa-star"></i>
+                <span>Equipo del año TSM</span>
+            </a>
+        </div>
+        <div class="footer-note">
+            Esta página sólo muestra el palmarés de competiciones oficiales. Los torneos amistosos no están incluidos.
+        </div>
+    </footer>
+    
     <div id="team-achievements-modal" class="modal">
         <div class="modal-content">
             <button title="Ir a las listas" onclick="openTeamsModal()" style="position: absolute; left: 1rem; top: 1rem; background: none; border: none; color: var(--accent-color); font-size: 1.5rem; cursor: pointer;">
                 <i class="fas fa-arrow-left"></i>
+            </button>
+            <button class="copy-achievements" onclick="copyAchievements('team')" title="Copiar logros al portapapeles">
+                <i class="fas fa-copy"></i>
             </button>
             <span class="close fas fa-times" onclick="closeModal('team-achievements-modal')"></span>
             <h2 id="modal-team-name"></h2>
@@ -1385,6 +1574,9 @@
                 <ul id="achievements-list-champ"></ul>
                 <h3 id="team-runnerups-count">Subcampeonatos</h3>
                 <ul id="achievements-list-runner"></ul>
+                <h3 id="team-records-count">Récords</h3>
+                <ul id="achievements-list-records"></ul>
+                <div id="team-record-shared-note" class="record-shared-note"></div>
             </div>
         </div>
     </div>
@@ -1394,6 +1586,9 @@
             <button title="Ir a las listas" onclick="openTeamsModal()" style="position: absolute; left: 1rem; top: 1rem; background: none; border: none; color: var(--accent-color); font-size: 1.5rem; cursor: pointer;">
                 <i class="fas fa-arrow-left"></i>
             </button>
+            <button class="copy-achievements" onclick="copyAchievements('manager')" title="Copiar logros al portapapeles">
+                <i class="fas fa-copy"></i>
+            </button>
             <span class="close fas fa-times" onclick="closeModal('manager-achievements-modal')"></span>
             <h2 id="modal-manager-name"></h2>
             <div class="achievements-scroll">
@@ -1401,6 +1596,9 @@
                 <ul id="manager-achievements-list-champ"></ul>
                 <h3 id="manager-runnerups-count">Subcampeonatos</h3>
                 <ul id="manager-achievements-list-runner"></ul>
+                <h3 id="manager-records-count">Récords</h3>
+                <ul id="manager-achievements-list-records"></ul>
+                <div id="manager-record-shared-note" class="record-shared-note"></div>
             </div>
         </div>
     </div>
@@ -1424,6 +1622,26 @@
             </div>
             <input type="text" id="entities-search" class="search-input" placeholder="Buscar entre X clubes..." oninput="filterEntities()" />
             <ul id="entities-list" class="teams-list"></ul>
+        </div>
+    </div>
+    
+    <div id="seasons-modal" class="modal">
+        <div class="modal-content">
+            <span class="close fas fa-times" onclick="closeModal('seasons-modal')"></span>
+            <h2><i class="fas fa-calendar-alt"></i> Período de cada temporada</h2>
+            <div class="modal-body">
+                <div id="seasons-list" style="max-height: 400px; overflow-y: auto; padding: 1rem 0;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="team-of-year-modal" class="modal">
+        <div class="modal-content">
+            <span class="close fas fa-times" onclick="closeModal('team-of-year-modal')"></span>
+            <h2><i class="fas fa-star"></i> Equipo del año TSM</h2>
+            <div class="modal-body">
+                <div id="team-of-year-list" style="max-height: 400px; overflow-y: auto; padding: 1rem 0;"></div>
+            </div>
         </div>
     </div>
     
@@ -1512,7 +1730,7 @@
 
         let selectedSuggestionIndex = -1;
         let shieldsMap = {};
-        let competitionShieldsMap = {}; // Nuevo mapa para escudos de competiciones
+        let competitionShieldsMap = {};
 
         const allTeams = [
             "Bayer Leverkusen", "Bayern de Múnich", "Borussia Dortmund", "Borussia Mönchengladbach", "Colonia", "Eintracht Frankfurt", "Friburgo", "Hamburgo", "Hannover 96", "Hoffenheim", "RB Leipzig", "Núremberg", "Schalke 04", "Stuttgart", "Werder Bremen", "Wolfsburgo", "Boca Juniors", "Estudiantes de La Plata", "River Plate", "RB Salzburgo", "Anderlecht", "Internacional", "Santos", "São Paulo", "Toronto", "Colo-Colo", "Once Caldas", "Copenhague", "Liga de Quito", "Celtic", "Rangers", "Athletic Club", "Atlético de Madrid", "Barcelona", "Deportivo de la Coruña", "Espanyol", "Getafe", "Levante", "Málaga", "Mallorca", "Osasuna", "Real Madrid", "Real Sociedad", "Sevilla", "Valencia", "Villarreal", "Colorado Rapids", "DC United", "Los Angeles Galaxy", "New England Revolution", "New York Red Bulls", "Auxerre", "Évian", "Girondins de Burdeos", "Lille", "Mónaco", "Montpellier", "Nancy", "Olympique de Lyon", "Olympique de Marsella", "PSG", "Saint-Étienne", "Sochaux", "Stade Rennes", "Toulouse", "Valenciennes", "Olympiakos", "Panathinaikos", "Arsenal", "Aston Villa", "Chelsea", "Everton", "Fulham", "Leicester City", "Liverpool", "Manchester City", "Manchester United", "Newcastle United", "Norwich City", "Southampton", "Stoke City", "Sunderland", "Swansea City", "Tottenham Hotspur", "West Bromwich Albion", "Atalanta", "Bolonia", "Catania", "Chievo de Verona", "Fiorentina", "Génova", "Inter de Milán", "Juventus", "Lazio", "Milan", "Nápoles", "Palermo", "Parma", "Roma", "Sampdoria", "Udinese", "Club América", "Atlas", "Cruz Azul", "Monterrey", "Pachuca", "Tigres", "Ajax", "AZ", "Feyenoord", "PSV", "Twente", "Benfica", "Oporto", "Sporting de Lisboa", "Braga", "Anzhí Majachkalá", "CSKA de Moscú", "Rubin Kazan", "Spartk de Moscú", "Zenit", "Basilea", "Galatasaray", "Fenerbahçe", "Dínamo de Kiev", "Shakhtar Donetsk", "Nacional", "Peñarol", "Caracas"
@@ -1545,7 +1763,6 @@
                     const name = text.substring(0, separatorIndex).trim();
                     const url = text.substring(separatorIndex + 2).trim();
                     
-                    // Verificar si es una competición
                     const isCompetition = competitions.some(comp => comp.name === name);
                     
                     if (isCompetition) {
@@ -1740,6 +1957,12 @@
                             </div>
                         </div>
                         <div id="evolution-${competitionId}" class="evolution-container hidden" data-calculated="false">
+                            <div class="evolution-speed-controls">
+                                <button class="speed-btn active" data-speed="1000">Lenta</button>
+                                <button class="speed-btn" data-speed="500">Media</button>
+                                <button class="speed-btn" data-speed="200">Rápida</button>
+                                <div class="edition-indicator" id="edition-indicator-${competitionId}">Edición: 0</div>
+                            </div>
                             <div class="evolution-controls">
                                 <button onclick="playEvolution('${competitionId}')" class="btn">Play</button>
                                 <button onclick="pauseEvolution('${competitionId}')" class="btn">Pausar</button>
@@ -1752,13 +1975,8 @@
         }
 
         function generateMenu() {
-            // Clubes Senior: índices 0-40 (41 competiciones)
             const seniorCompetitions = competitions.slice(0, 41);
-            
-            // Selecciones Nacionales: índices 41-48 (8 competiciones) - INCLUYE NATIONS LEAGUE
             const nationalCompetitions = competitions.slice(41, 49);
-            
-            // Más competiciones: índices 49-60 (12 competiciones) - Eurocopa femenina + filiales
             const moreCompetitions = competitions.slice(49);
 
             document.getElementById('senior-competitions').innerHTML = seniorCompetitions.map(comp => `
@@ -1785,9 +2003,9 @@
             });
             generateMenu();
             initSeasonView();
+            initDarkMode();
         });
 
-        // FUNCIÓN RESTAURADA PARA CARGAR TODAS LAS COMPETICIONES PRINCIPALES
         async function loadCompetitionData() {
             try {
                 const response = await fetch('https://alantsm.github.io/listofhonoursdb/');
@@ -1796,7 +2014,6 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
 
-                // Cargar TODAS las competiciones principales (0-60)
                 competitions.forEach(comp => {
                     const data = doc.querySelector(`#${comp.id}-data table`);
                     if (data) {
@@ -1821,9 +2038,6 @@
                         document.getElementById(`editions-${comp.id}`).textContent = rows.length;
                         populateTeamSelector(comp.id);
                         populateManagerSelector(comp.id);
-                    } else {
-                        // Si no se encuentra en la página principal, se intentará cargar desde juveniles
-                        console.log(`No se encontró ${comp.id} en la página principal, se cargará desde juveniles si corresponde`);
                     }
                 });
             } catch (error) {
@@ -1831,7 +2045,6 @@
             }
         }
 
-        // FUNCIÓN RESTAURADA PARA CARGAR DATOS JUVENILES
         async function loadYouthCompetitionData() {
             try {
                 const response = await fetch('https://www.tusoccermanager.com/h62-morecompetitionslistofhonoursdb-html');
@@ -1841,7 +2054,6 @@
                 const doc = parser.parseFromString(html, 'text/html');
 
                 const youthCompIdMap = {
-                    // Eurocopa femenina se carga de la página principal, no de juveniles
                     "eurocopa-femenina": "eurocopa-femenina-data",
                     "1ªsub-2123": "1ª-sub-21/23-data",
                     "2ª-sub-21/23": "2ª-sub-21/23-data",
@@ -1857,7 +2069,6 @@
                     "youth-league": "youth-league-data"
                 };
 
-                // Solo cargar las competiciones que están en el mapa de juveniles
                 competitions.forEach(comp => {
                     const mappedId = youthCompIdMap[comp.id];
                     if (mappedId) {
@@ -1884,8 +2095,6 @@
                             document.getElementById(`editions-${comp.id}`).textContent = rows.length;
                             populateTeamSelector(comp.id);
                             populateManagerSelector(comp.id);
-                        } else {
-                            console.warn(`No se encontró la tabla para ${comp.id} (mapped ID: ${mappedId}) en la página de equipos juveniles`);
                         }
                     }
                 });
@@ -2042,18 +2251,75 @@
             return seasons.slice(0, -1).join(', ') + ' y ' + seasons[seasons.length - 1];
         }
 
+        function calculateRecords(entityName, type) {
+            const records = [];
+            const sharedRecords = [];
+
+            competitions.forEach(comp => {
+                const tableContainer = document.getElementById(`table-${comp.id}-container`);
+                if (!tableContainer) return;
+
+                const rows = tableContainer.querySelectorAll('tbody tr');
+                const winnerCounts = {};
+
+                rows.forEach(row => {
+                    let winner;
+                    if (type === 'team') {
+                        winner = row.cells[1].textContent.trim();
+                    } else if (type === 'manager') {
+                        winner = row.cells[3].textContent.trim().replace(/[@"]/g, '');
+                    }
+
+                    if (winner) {
+                        winnerCounts[winner] = (winnerCounts[winner] || 0) + 1;
+                    }
+                });
+
+                let maxWins = 0;
+                let topWinners = [];
+                for (const [winner, count] of Object.entries(winnerCounts)) {
+                    if (count > maxWins) {
+                        maxWins = count;
+                        topWinners = [winner];
+                    } else if (count === maxWins) {
+                        topWinners.push(winner);
+                    }
+                }
+
+                if (topWinners.includes(entityName) && maxWins > 0) {
+                    const isShared = topWinners.length > 1;
+                    records.push({
+                        competition: comp.name,
+                        wins: maxWins,
+                        shared: isShared
+                    });
+
+                    if (isShared) {
+                        sharedRecords.push(comp.name);
+                    }
+                }
+            });
+
+            return { records, sharedRecords };
+        }
+
         function showTeamAchievements(teamName) {
             const modal = document.getElementById('team-achievements-modal');
             const teamNameElement = document.getElementById('modal-team-name');
             const champList = document.getElementById('achievements-list-champ');
             const runnerList = document.getElementById('achievements-list-runner');
+            const recordsList = document.getElementById('achievements-list-records');
+            const sharedNote = document.getElementById('team-record-shared-note');
             const trophiesCountElement = document.getElementById('team-trophies-count');
             const runnerupsCountElement = document.getElementById('team-runnerups-count');
+            const recordsCountElement = document.getElementById('team-records-count');
             const modalContent = document.querySelector('#team-achievements-modal .modal-content');
 
             teamNameElement.textContent = `Logros de ${teamName}`;
             champList.innerHTML = '';
             runnerList.innerHTML = '';
+            recordsList.innerHTML = '';
+            sharedNote.innerHTML = '';
 
             const existingShield = modalContent.querySelector('img');
             if (existingShield) {
@@ -2123,6 +2389,20 @@
                 }
             });
 
+            const { records, sharedRecords } = calculateRecords(teamName, 'team');
+            recordsCountElement.textContent = `Récords (${records.length})`;
+
+            records.forEach(record => {
+                const li = document.createElement('li');
+                const compShield = competitionShieldsMap[record.competition] || 'https://2img.net/i.imgur.com/Kz20esO.png';
+                li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${record.competition}"><strong>${record.competition}</strong> (${record.wins} títulos)${record.shared ? '*' : ''}`;
+                recordsList.appendChild(li);
+            });
+
+            if (sharedRecords.length > 0) {
+                sharedNote.innerHTML = '*Récord compartido';
+            }
+
             if (totalTrophies === 0 && totalRunnerups === 0) {
                 const liChamp = document.createElement('li');
                 liChamp.textContent = 'Ninguno.';
@@ -2130,6 +2410,12 @@
                 const liRunner = document.createElement('li');
                 liRunner.textContent = 'Ninguno.';
                 runnerList.appendChild(liRunner);
+            }
+
+            if (records.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = 'Ninguno.';
+                recordsList.appendChild(li);
             }
 
             modal.classList.add('visible');
@@ -2140,11 +2426,16 @@
             const managerNameElement = document.getElementById('modal-manager-name');
             const champList = document.getElementById('manager-achievements-list-champ');
             const runnerList = document.getElementById('manager-achievements-list-runner');
+            const recordsList = document.getElementById('manager-achievements-list-records');
+            const sharedNote = document.getElementById('manager-record-shared-note');
             const trophiesCountElement = document.getElementById('manager-trophies-count');
             const runnerupsCountElement = document.getElementById('manager-runnerups-count');
+            const recordsCountElement = document.getElementById('manager-records-count');
             managerNameElement.textContent = `Logros de ${managerName.replace(/[@"]/g, '')}`;
             champList.innerHTML = '';
             runnerList.innerHTML = '';
+            recordsList.innerHTML = '';
+            sharedNote.innerHTML = '';
 
             const achievementsByComp = {};
             let totalTrophies = 0;
@@ -2196,6 +2487,20 @@
                 }
             });
 
+            const { records, sharedRecords } = calculateRecords(managerName.replace(/[@"]/g, ''), 'manager');
+            recordsCountElement.textContent = `Récords (${records.length})`;
+
+            records.forEach(record => {
+                const li = document.createElement('li');
+                const compShield = competitionShieldsMap[record.competition] || 'https://2img.net/i.imgur.com/Kz20esO.png';
+                li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${record.competition}"><strong>${record.competition}</strong> (${record.wins} títulos)${record.shared ? '*' : ''}`;
+                recordsList.appendChild(li);
+            });
+
+            if (sharedRecords.length > 0) {
+                sharedNote.innerHTML = '*Récord compartido';
+            }
+
             if (champList.children.length === 0) {
                 const li = document.createElement('li');
                 li.textContent = 'Ninguno.';
@@ -2206,8 +2511,54 @@
                 li.textContent = 'Ninguno.';
                 runnerList.appendChild(li);
             }
+            if (records.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = 'Ninguno.';
+                recordsList.appendChild(li);
+            }
 
             modal.classList.add('visible');
+        }
+
+        function copyAchievements(type) {
+            let textToCopy = '';
+            if (type === 'team') {
+                const teamName = document.getElementById('modal-team-name').textContent.replace('Logros de ', '');
+                textToCopy += `Logros de ${teamName}\n\n`;
+                textToCopy += `Trofeos:\n`;
+                document.querySelectorAll('#achievements-list-champ li').forEach(li => {
+                    textToCopy += `- ${li.textContent}\n`;
+                });
+                textToCopy += `\nSubcampeonatos:\n`;
+                document.querySelectorAll('#achievements-list-runner li').forEach(li => {
+                    textToCopy += `- ${li.textContent}\n`;
+                });
+                textToCopy += `\nRécords:\n`;
+                document.querySelectorAll('#achievements-list-records li').forEach(li => {
+                    textToCopy += `- ${li.textContent}\n`;
+                });
+            } else if (type === 'manager') {
+                const managerName = document.getElementById('modal-manager-name').textContent.replace('Logros de ', '');
+                textToCopy += `Logros de ${managerName}\n\n`;
+                textToCopy += `Trofeos:\n`;
+                document.querySelectorAll('#manager-achievements-list-champ li').forEach(li => {
+                    textToCopy += `- ${li.textContent}\n`;
+                });
+                textToCopy += `\nSubcampeonatos:\n`;
+                document.querySelectorAll('#manager-achievements-list-runner li').forEach(li => {
+                    textToCopy += `- ${li.textContent}\n`;
+                });
+                textToCopy += `\nRécords:\n`;
+                document.querySelectorAll('#manager-achievements-list-records li').forEach(li => {
+                    textToCopy += `- ${li.textContent}\n`;
+                });
+            }
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert('Logros copiados al portapapeles.');
+            }, () => {
+                alert('Error al copiar al portapapeles.');
+            });
         }
 
         function closeModal(modalId) {
@@ -2226,7 +2577,6 @@
                 }
             });
             
-            // Actualizar el placeholder según la pestaña
             const searchInput = document.getElementById('entities-search');
             if (tab === 'clubs') {
                 searchInput.placeholder = `Buscar entre ${allTeams.length} clubes...`;
@@ -2316,6 +2666,18 @@
         document.getElementById('teams-modal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('teams-modal')) {
                 closeModal('teams-modal');
+            }
+        });
+
+        document.getElementById('seasons-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('seasons-modal')) {
+                closeModal('seasons-modal');
+            }
+        });
+
+        document.getElementById('team-of-year-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('team-of-year-modal')) {
+                closeModal('team-of-year-modal');
             }
         });
 
@@ -2443,9 +2805,7 @@
         }
 
         function initSeasonView() {
-            // Primero cargar desde la página principal, luego desde juveniles
             loadCompetitionData().then(() => {
-                // Después de cargar de la página principal, cargar de juveniles
                 loadYouthCompetitionData().then(() => {
                     extractSeasonData();
                     populateEntitiesList();
@@ -2659,6 +3019,7 @@
 
         let evolutionCharts = {};
         let evolutionIntervals = {};
+        let evolutionSpeeds = {};
 
         function toggleEvolution(evolutionId) {
             const evolutionElement = document.getElementById(evolutionId);
@@ -2682,6 +3043,23 @@
             }
         }
 
+        function setupEvolutionSpeedControls(compId) {
+            const speedButtons = document.querySelectorAll(`#evolution-${compId} .speed-btn`);
+            speedButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    speedButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const speed = parseInt(this.getAttribute('data-speed'));
+                    evolutionSpeeds[compId] = speed;
+
+                    if (evolutionIntervals[compId]) {
+                        pauseEvolution(compId);
+                        playEvolution(compId);
+                    }
+                });
+            });
+        }
+
         function createEvolutionChart(compId) {
             const tableContainer = document.getElementById(`table-${compId}-container`);
             const rows = tableContainer.querySelectorAll('tbody tr');
@@ -2692,7 +3070,6 @@
                 seasonData.push({ season, champion });
             });
 
-            // Crear datos acumulativos por edición
             const teamTitles = {};
             seasonData.forEach((data, index) => {
                 if (!teamTitles[data.champion]) {
@@ -2752,9 +3129,10 @@
                 }
             });
 
-            // Guardar datos para la animación
             evolutionCharts[compId].seasonData = seasonData;
             evolutionCharts[compId].teamTitles = teamTitles;
+
+            setupEvolutionSpeedControls(compId);
         }
 
         function playEvolution(compId) {
@@ -2766,13 +3144,14 @@
             let currentEdition = 0;
             const maxEditions = chart.seasonData.length;
 
+            let speed = evolutionSpeeds[compId] || 500;
+
             evolutionIntervals[compId] = setInterval(() => {
                 if (currentEdition >= maxEditions) {
                     clearInterval(evolutionIntervals[compId]);
                     return;
                 }
 
-                // Determinar equipos que han ganado hasta la edición actual
                 const teamsWithTitles = [];
                 const titlesUpToEdition = {};
                 for (let i = 0; i <= currentEdition; i++) {
@@ -2784,22 +3163,23 @@
                     titlesUpToEdition[champion]++;
                 }
 
-                // Ordenar equipos por número de títulos (y alfabéticamente en caso de empate)
                 const sortedTeams = teamsWithTitles.sort((a, b) => {
                     const titlesA = titlesUpToEdition[a];
                     const titlesB = titlesUpToEdition[b];
                     return titlesB - titlesA || a.localeCompare(b);
                 });
 
-                // Actualizar datos del gráfico
                 chart.data.labels = sortedTeams;
                 chart.data.datasets[0].data = sortedTeams.map(team => titlesUpToEdition[team]);
                 chart.data.datasets[0].backgroundColor = sortedTeams.map(team => chart.data.datasets[0].backgroundColor[Object.keys(chart.teamTitles).indexOf(team)] || getRandomColor());
                 chart.data.datasets[0].borderColor = chart.data.datasets[0].backgroundColor;
 
                 chart.update();
+
+                document.getElementById(`edition-indicator-${compId}`).textContent = `Edición: ${currentEdition + 1}`;
+
                 currentEdition++;
-            }, 500);
+            }, speed);
         }
 
         function pauseEvolution(compId) {
@@ -2816,6 +3196,94 @@
                 color += letters[Math.floor(Math.random() * 16)];
             }
             return color;
+        }
+
+        function initDarkMode() {
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const icon = darkModeToggle.querySelector('i');
+
+            const savedMode = localStorage.getItem('darkMode');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedMode === 'dark' || (!savedMode && systemPrefersDark)) {
+                document.body.classList.add('dark-mode');
+                icon.className = 'fas fa-sun';
+            }
+
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                if (document.body.classList.contains('dark-mode')) {
+                    icon.className = 'fas fa-sun';
+                    localStorage.setItem('darkMode', 'dark');
+                } else {
+                    icon.className = 'fas fa-moon';
+                    localStorage.setItem('darkMode', 'light');
+                }
+            });
+        }
+
+        async function showSeasonsModal() {
+            const modal = document.getElementById('seasons-modal');
+            const listContainer = document.getElementById('seasons-list');
+
+            try {
+                const response = await fetch('https://www.tusoccermanager.com/h115-seasonbyseason-html');
+                if (!response.ok) throw new Error('No se pudo cargar la información');
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const preContent = doc.querySelector('pre');
+
+                if (preContent) {
+                    const lines = preContent.textContent.split('\n').filter(line => line.trim());
+                    const formattedList = lines.map(line => {
+                        const cleanedLine = line.trim().replace('Temporada ', '');
+                        return `<div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                                    <strong style="color: var(--accent-color);">${cleanedLine}</strong>
+                                </div>`;
+                    }).join('');
+                    listContainer.innerHTML = formattedList;
+                } else {
+                    listContainer.innerHTML = '<p>No se encontró la información de temporadas.</p>';
+                }
+            } catch (error) {
+                console.error('Error al cargar temporadas:', error);
+                listContainer.innerHTML = '<p>No se pudo cargar la información de temporadas. Por favor, inténtalo más tarde.</p>';
+            }
+
+            modal.classList.add('visible');
+        }
+
+        async function showTeamOfYearModal() {
+            const modal = document.getElementById('team-of-year-modal');
+            const listContainer = document.getElementById('team-of-year-list');
+
+            try {
+                const response = await fetch('https://www.tusoccermanager.com/h116-teamoftheyear-html');
+                if (!response.ok) throw new Error('No se pudo cargar la información');
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const preContent = doc.querySelector('pre');
+
+                if (preContent) {
+                    const lines = preContent.textContent.split('\n').filter(line => line.trim());
+                    const formattedList = lines.map(line => {
+                        const cleanedLine = line.trim().replace('Temporada ', '');
+                        return `<div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                                    <strong style="color: var(--accent-color);">${cleanedLine}</strong>
+                                </div>`;
+                    }).join('');
+                    listContainer.innerHTML = formattedList;
+                } else {
+                    listContainer.innerHTML = '<p>No se encontró la información del equipo del año.</p>';
+                }
+            } catch (error) {
+                console.error('Error al cargar equipo del año:', error);
+                listContainer.innerHTML = '<p>No se pudo cargar la información del equipo del año. Por favor, inténtalo más tarde.</p>';
+            }
+
+            modal.classList.add('visible');
         }
     </script>
 </body>
