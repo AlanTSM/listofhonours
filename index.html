@@ -169,6 +169,24 @@
             overflow-y: auto;
         }
 
+        .menu-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .menu-content::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .menu-content::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 4px;
+        }
+
+        .menu-content::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
         .menu-content.active {
             display: flex;
             opacity: 1;
@@ -311,9 +329,27 @@
             border-radius: 8px;
             max-height: 300px;
             overflow-y: auto;
-            z-index: 100;
+            z-index: 1100;
             display: none;
             box-shadow: var(--card-shadow);
+        }
+
+        .suggestions::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .suggestions::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .suggestions::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 4px;
+        }
+
+        .suggestions::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
         }
 
         .suggestions li {
@@ -343,6 +379,24 @@
             margin: 1rem 0;
             max-height: 400px;
             overflow-y: auto;
+        }
+
+        .teams-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .teams-list::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .teams-list::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 4px;
+        }
+
+        .teams-list::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
         }
 
         .teams-list li {
@@ -758,8 +812,8 @@
 
         .copy-achievements {
             position: absolute;
-            top: 1rem;
-            right: 4rem;
+            bottom: 1rem;
+            right: 1rem;
             background: none;
             border: none;
             color: var(--accent-color);
@@ -1038,6 +1092,7 @@
             gap: 1rem;
             margin-bottom: 1.5rem;
             align-items: center;
+            position: relative;
         }
 
         .comparison-input {
@@ -1247,6 +1302,7 @@
             display: flex;
             gap: 1rem;
             margin-bottom: 1rem;
+            align-items: center;
         }
 
         .evolution-speed-controls {
@@ -1330,6 +1386,66 @@
             margin-top: 1rem;
         }
 
+        .edition-note {
+            font-size: 0.7em;
+            opacity: 0.7;
+            margin-left: 2px;
+        }
+
+        .evolution-timeline {
+            flex: 1;
+            margin: 0 1rem;
+        }
+
+        .timeline-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            border-radius: 3px;
+            outline: none;
+            opacity: 0.8;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .timeline-slider:hover {
+            opacity: 1;
+        }
+
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .timeline-slider::-webkit-slider-thumb:hover {
+            background: var(--accent-hover);
+            transform: scale(1.1);
+        }
+
+        .timeline-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            border: none;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .timeline-slider::-moz-range-thumb:hover {
+            background: var(--accent-hover);
+            transform: scale(1.1);
+        }
+
         @media (max-width: 1200px) {
             .menu-content {
                 width: 90vw;
@@ -1400,6 +1516,13 @@
                 align-items: center;
                 gap: 0.5rem;
                 flex-wrap: nowrap;
+            }
+            .evolution-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .evolution-timeline {
+                margin: 0.5rem 0;
             }
         }
 
@@ -1964,8 +2087,10 @@
                                 <div class="edition-indicator" id="edition-indicator-${competitionId}">Edición: 0</div>
                             </div>
                             <div class="evolution-controls">
-                                <button onclick="playEvolution('${competitionId}')" class="btn">Play</button>
-                                <button onclick="pauseEvolution('${competitionId}')" class="btn">Pausar</button>
+                                <button id="play-pause-${competitionId}" onclick="togglePlayPause('${competitionId}')" class="btn"><i class="fas fa-play"></i> Play</button>
+                                <div class="evolution-timeline">
+                                    <input type="range" min="0" max="100" value="0" class="timeline-slider" id="timeline-${competitionId}" oninput="seekEvolution('${competitionId}', this.value)">
+                                </div>
                             </div>
                             <canvas id="evolution-chart-${competitionId}"></canvas>
                         </div>
@@ -2022,6 +2147,14 @@
                         const table = tableContainer.querySelector('table');
                         const rows = table.querySelectorAll('tbody tr');
                         rows.forEach(row => {
+                            const seasonCell = row.cells[0].textContent.trim();
+                            const [season, edition] = seasonCell.split('(');
+                            const editionClean = edition ? edition.replace(')', '') : '';
+                            
+                            if (edition) {
+                                row.cells[0].innerHTML = `${season} (<span class="edition-note">${editionClean}</span>)`;
+                            }
+                            
                             const champion = row.cells[1].textContent.trim();
                             const runnerUp = row.cells[2].textContent.trim();
                             const championShield = shieldsMap[champion] || '';
@@ -2079,6 +2212,14 @@
                             const table = tableContainer.querySelector('table');
                             const rows = table.querySelectorAll('tbody tr');
                             rows.forEach(row => {
+                                const seasonCell = row.cells[0].textContent.trim();
+                                const [season, edition] = seasonCell.split('(');
+                                const editionClean = edition ? edition.replace(')', '') : '';
+                                
+                                if (edition) {
+                                    row.cells[0].innerHTML = `${season} (<span class="edition-note">${editionClean}</span>)`;
+                                }
+                                
                                 const champion = row.cells[1].textContent.trim();
                                 const runnerUp = row.cells[2].textContent.trim();
                                 const championShield = shieldsMap[champion] || '';
@@ -3020,6 +3161,7 @@
         let evolutionCharts = {};
         let evolutionIntervals = {};
         let evolutionSpeeds = {};
+        let evolutionStates = {};
 
         function toggleEvolution(evolutionId) {
             const evolutionElement = document.getElementById(evolutionId);
@@ -3052,7 +3194,7 @@
                     const speed = parseInt(this.getAttribute('data-speed'));
                     evolutionSpeeds[compId] = speed;
 
-                    if (evolutionIntervals[compId]) {
+                    if (evolutionStates[compId] && evolutionStates[compId].playing) {
                         pauseEvolution(compId);
                         playEvolution(compId);
                     }
@@ -3131,6 +3273,17 @@
 
             evolutionCharts[compId].seasonData = seasonData;
             evolutionCharts[compId].teamTitles = teamTitles;
+            evolutionCharts[compId].totalEditions = seasonData.length;
+
+            evolutionStates[compId] = {
+                playing: false,
+                currentEdition: 0,
+                maxEditions: seasonData.length
+            };
+
+            const slider = document.getElementById(`timeline-${compId}`);
+            slider.max = seasonData.length - 1;
+            slider.value = 0;
 
             setupEvolutionSpeedControls(compId);
         }
@@ -3141,44 +3294,29 @@
 
             pauseEvolution(compId);
 
-            let currentEdition = 0;
-            const maxEditions = chart.seasonData.length;
+            evolutionStates[compId].playing = true;
+            updatePlayPauseButton(compId);
+
+            let currentEdition = evolutionStates[compId].currentEdition;
+            const maxEditions = chart.totalEditions;
 
             let speed = evolutionSpeeds[compId] || 500;
 
             evolutionIntervals[compId] = setInterval(() => {
                 if (currentEdition >= maxEditions) {
                     clearInterval(evolutionIntervals[compId]);
+                    evolutionStates[compId].playing = false;
+                    updatePlayPauseButton(compId);
                     return;
                 }
 
-                const teamsWithTitles = [];
-                const titlesUpToEdition = {};
-                for (let i = 0; i <= currentEdition; i++) {
-                    const champion = chart.seasonData[i].champion;
-                    if (!titlesUpToEdition[champion]) {
-                        titlesUpToEdition[champion] = 0;
-                        teamsWithTitles.push(champion);
-                    }
-                    titlesUpToEdition[champion]++;
-                }
-
-                const sortedTeams = teamsWithTitles.sort((a, b) => {
-                    const titlesA = titlesUpToEdition[a];
-                    const titlesB = titlesUpToEdition[b];
-                    return titlesB - titlesA || a.localeCompare(b);
-                });
-
-                chart.data.labels = sortedTeams;
-                chart.data.datasets[0].data = sortedTeams.map(team => titlesUpToEdition[team]);
-                chart.data.datasets[0].backgroundColor = sortedTeams.map(team => chart.data.datasets[0].backgroundColor[Object.keys(chart.teamTitles).indexOf(team)] || getRandomColor());
-                chart.data.datasets[0].borderColor = chart.data.datasets[0].backgroundColor;
-
-                chart.update();
-
-                document.getElementById(`edition-indicator-${compId}`).textContent = `Edición: ${currentEdition + 1}`;
-
+                updateChartToEdition(compId, currentEdition);
                 currentEdition++;
+                evolutionStates[compId].currentEdition = currentEdition;
+                
+                const slider = document.getElementById(`timeline-${compId}`);
+                slider.value = currentEdition;
+
             }, speed);
         }
 
@@ -3187,6 +3325,73 @@
                 clearInterval(evolutionIntervals[compId]);
                 delete evolutionIntervals[compId];
             }
+            if (evolutionStates[compId]) {
+                evolutionStates[compId].playing = false;
+                updatePlayPauseButton(compId);
+            }
+        }
+
+        function togglePlayPause(compId) {
+            if (evolutionStates[compId] && evolutionStates[compId].playing) {
+                pauseEvolution(compId);
+            } else {
+                playEvolution(compId);
+            }
+        }
+
+        function updatePlayPauseButton(compId) {
+            const button = document.getElementById(`play-pause-${compId}`);
+            if (!button) return;
+            
+            if (evolutionStates[compId] && evolutionStates[compId].playing) {
+                button.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+            } else {
+                button.innerHTML = '<i class="fas fa-play"></i> Play';
+            }
+        }
+
+        function seekEvolution(compId, value) {
+            const chart = evolutionCharts[compId];
+            if (!chart) return;
+            
+            const edition = parseInt(value);
+            if (edition >= 0 && edition < chart.totalEditions) {
+                pauseEvolution(compId);
+                updateChartToEdition(compId, edition);
+                evolutionStates[compId].currentEdition = edition;
+                document.getElementById(`timeline-${compId}`).value = edition;
+            }
+        }
+
+        function updateChartToEdition(compId, edition) {
+            const chart = evolutionCharts[compId];
+            if (!chart) return;
+
+            const teamsWithTitles = [];
+            const titlesUpToEdition = {};
+            for (let i = 0; i <= edition; i++) {
+                const champion = chart.seasonData[i].champion;
+                if (!titlesUpToEdition[champion]) {
+                    titlesUpToEdition[champion] = 0;
+                    teamsWithTitles.push(champion);
+                }
+                titlesUpToEdition[champion]++;
+            }
+
+            const sortedTeams = teamsWithTitles.sort((a, b) => {
+                const titlesA = titlesUpToEdition[a];
+                const titlesB = titlesUpToEdition[b];
+                return titlesB - titlesA || a.localeCompare(b);
+            });
+
+            chart.data.labels = sortedTeams;
+            chart.data.datasets[0].data = sortedTeams.map(team => titlesUpToEdition[team]);
+            chart.data.datasets[0].backgroundColor = sortedTeams.map(team => chart.data.datasets[0].backgroundColor[Object.keys(chart.teamTitles).indexOf(team)] || getRandomColor());
+            chart.data.datasets[0].borderColor = chart.data.datasets[0].backgroundColor;
+
+            chart.update();
+
+            document.getElementById(`edition-indicator-${compId}`).textContent = `Edición: ${edition + 1}`;
         }
         
         function getRandomColor() {
