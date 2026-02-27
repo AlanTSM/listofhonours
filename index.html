@@ -802,13 +802,8 @@
         /* Estilos específicos para el modal de ranking */
         #ranking-modal .modal-content {
             max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
             padding: 1.5rem;
-        }
-
-        #ranking-modal .teams-list {
-            max-height: 300px;
+            /* overflow eliminado, lo maneja el contenedor interno */
         }
 
         .close {
@@ -1041,6 +1036,28 @@
 
         #team-appearances-info p {
             margin: 0.3rem 0;
+        }
+
+        /* Estilo para las etiquetas de participaciones */
+        .appearance-badges {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .appearance-badge {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--card-shadow);
+        }
+        .appearance-badge i {
+            font-size: 1rem;
         }
 
         .back-to-top {
@@ -1866,18 +1883,19 @@
             <span class="close fas fa-times" onclick="closeModal('team-achievements-modal')"></span>
             <h2 id="modal-team-name"></h2>
             <div class="achievements-scroll">
-                <h3 id="team-trophies-count">Trofeos</h3>
+                <h3 id="team-trophies-count">Títulos</h3>
                 <ul id="achievements-list-champ"></ul>
                 <h3 id="team-runnerups-count">Subcampeonatos</h3>
                 <ul id="achievements-list-runner"></ul>
                 <h3 id="team-records-count">Récords</h3>
                 <ul id="achievements-list-records"></ul>
+                <!-- Nota de récord compartido (se reubicará dinámicamente dentro de la sección) -->
+                <div id="team-record-shared-note" class="record-shared-note" style="display: none;"></div>
                 <h3 id="team-awards-count">Premios</h3>
                 <ul id="achievements-list-awards"></ul>
                 <!-- Nueva sección de participaciones -->
                 <h3 id="team-appearances-count">Participaciones</h3>
                 <div id="team-appearances-info"></div>
-                <div id="team-record-shared-note" class="record-shared-note"></div>
             </div>
         </div>
     </div>
@@ -1893,13 +1911,13 @@
             <span class="close fas fa-times" onclick="closeModal('manager-achievements-modal')"></span>
             <h2 id="modal-manager-name"></h2>
             <div class="achievements-scroll">
-                <h3 id="manager-trophies-count">Trofeos</h3>
+                <h3 id="manager-trophies-count">Títulos</h3>
                 <ul id="manager-achievements-list-champ"></ul>
                 <h3 id="manager-runnerups-count">Subcampeonatos</h3>
                 <ul id="manager-achievements-list-runner"></ul>
                 <h3 id="manager-records-count">Récords</h3>
                 <ul id="manager-achievements-list-records"></ul>
-                <div id="manager-record-shared-note" class="record-shared-note"></div>
+                <div id="manager-record-shared-note" class="record-shared-note" style="display: none;"></div>
             </div>
         </div>
     </div>
@@ -1950,25 +1968,28 @@
         <div class="modal-content">
             <span class="close fas fa-times" onclick="closeModal('ranking-modal')"></span>
             <h2><i class="fas fa-trophy"></i> Ranking</h2>
-            <div class="ranking-note">
-                <i class="fas fa-info-circle"></i> Las competiciones de filiales y femeninas no se incluyen en los rankings.
+            <!-- Contenedor con scroll interno -->
+            <div class="achievements-scroll">
+                <div class="ranking-note">
+                    <i class="fas fa-info-circle"></i> Las competiciones de filiales y femeninas no se incluyen en los rankings.
+                </div>
+                <div class="tabs">
+                    <button onclick="showRankingTab('clubs')" class="tab-button active">
+                        <i class="fas fa-futbol"></i>
+                        <span>Clubes</span>
+                    </button>
+                    <button onclick="showRankingTab('managers')" class="tab-button">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Mánagers</span>
+                    </button>
+                    <button onclick="showRankingTab('selections')" class="tab-button">
+                        <i class="fas fa-globe"></i>
+                        <span>Selecciones</span>
+                    </button>
+                </div>
+                <input type="text" id="ranking-search" class="search-input" placeholder="Buscar en el ranking..." oninput="filterRanking()" />
+                <div id="ranking-list" class="teams-list"></div>
             </div>
-            <div class="tabs">
-                <button onclick="showRankingTab('clubs')" class="tab-button active">
-                    <i class="fas fa-futbol"></i>
-                    <span>Clubes</span>
-                </button>
-                <button onclick="showRankingTab('managers')" class="tab-button">
-                    <i class="fas fa-user-tie"></i>
-                    <span>Mánagers</span>
-                </button>
-                <button onclick="showRankingTab('selections')" class="tab-button">
-                    <i class="fas fa-globe"></i>
-                    <span>Selecciones</span>
-                </button>
-            </div>
-            <input type="text" id="ranking-search" class="search-input" placeholder="Buscar en el ranking..." oninput="filterRanking()" />
-            <div id="ranking-list" class="teams-list"></div>
         </div>
     </div>
     
@@ -2049,6 +2070,11 @@
             { id: "youth-league", name: "Youth League" }
         ];
 
+        // Función para normalizar cadenas (eliminar acentos y diacríticos)
+        function normalizeString(str) {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
         // Opciones de Fuse con ignorar diacríticos
         const fuseOptions = {
             keys: ['name'],
@@ -2060,7 +2086,9 @@
         let selectedSuggestionIndex = -1;
         let shieldsMap = {};
         let competitionShieldsMap = {};
-        let teamAppearancesMap = {}; // Nuevo mapa para participaciones
+        let teamAppearancesMap = {}; // Mapa para participaciones
+        let teamNationalitiesMap = {}; // Mapa de equipo -> código FIFA
+        let flagsMap = {}; // Mapa de código FIFA -> URL de bandera
 
         const allTeams = [
             "Bayer Leverkusen", "Bayern de Múnich", "Borussia Dortmund", "Borussia Mönchengladbach", "Colonia", "Eintracht Frankfurt", "Friburgo", "Hamburgo", "Hannover 96", "Hoffenheim", "RB Leipzig", "Núremberg", "Schalke 04", "Stuttgart", "Werder Bremen", "Wolfsburgo", "Boca Juniors", "Estudiantes de La Plata", "River Plate", "Anderlecht", "Internacional", "Santos", "São Paulo", "Toronto", "Colo-Colo", "Once Caldas", "Copenhague", "Liga de Quito", "Celtic", "Rangers", "Athletic Club", "Atlético de Madrid", "Barcelona", "Deportivo de la Coruña", "Espanyol", "Getafe", "Levante", "Málaga", "Mallorca", "Osasuna", "Real Madrid", "Real Sociedad", "Sevilla", "Valencia", "Villarreal", "Colorado Rapids", "DC United", "Los Angeles Galaxy", "New England Revolution", "New York Red Bulls", "Auxerre", "Évian", "Girondins de Burdeos", "Lille", "Mónaco", "Montpellier", "Nancy", "Olympique de Lyon", "Olympique de Marsella", "PSG", "Saint-Étienne", "Sochaux", "Stade Rennes", "Toulouse", "Valenciennes", "Olympiakós", "Panathinaikós", "Arsenal", "Aston Villa", "Chelsea", "Everton", "Fulham", "Leicester City", "Liverpool", "Manchester City", "Manchester United", "Newcastle United", "Norwich City", "Southampton", "Stoke City", "Sunderland", "Swansea City", "Tottenham Hotspur", "West Bromwich Albion", "Atalanta", "Bolonia", "Catania", "Chievo de Verona", "Fiorentina", "Génova", "Inter de Milán", "Juventus", "Lazio", "Milan", "Nápoles", "Palermo", "Parma", "Roma", "Sampdoria", "Udinese", "Club América", "Atlas", "Cruz Azul", "Monterrey", "Pachuca", "Tigres", "Ajax", "AZ", "Feyenoord", "PSV", "Twente", "Benfica", "Oporto", "Sporting de Lisboa", "Braga", "Anzhí Majachkalá", "CSKA de Moscú", "Rubin Kazan", "Spartak de Moscú", "Zenit", "Basilea", "Galatasaray", "Fenerbahçe", "Dínamo de Kiev", "Shakhtar Donetsk", "Nacional", "Peñarol", "Caracas"
@@ -2083,6 +2111,7 @@
         };
         let currentRankingTab = 'clubs';
 
+        // Cargar base de datos de escudos
         async function loadShieldsDatabase() {
             try {
                 const response = await fetch('https://www.tusoccermanager.com/h63-teambadgedb-html');
@@ -2118,7 +2147,35 @@
             }
         }
 
-        // Nueva función para cargar datos de participaciones
+        // Cargar base de datos de banderas
+        async function loadFlagsDatabase() {
+            try {
+                const response = await fetch('https://www.tusoccermanager.com/h86-flagdb-html');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const preContent = doc.querySelector('pre');
+                flagsMap = {};
+                if (preContent) {
+                    const lines = preContent.textContent.split('\n');
+                    lines.forEach(line => {
+                        line = line.trim();
+                        if (line === '' || line.includes('<')) return;
+                        const colonPos = line.indexOf(':');
+                        if (colonPos > 0) {
+                            const code = line.substring(0, colonPos).trim();
+                            const url = line.substring(colonPos + 1).trim();
+                            flagsMap[code] = url;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar base de datos de banderas:', error);
+            }
+        }
+
+        // Nueva función para cargar datos de participaciones y nacionalidades
         async function loadTeamAppearancesData() {
             try {
                 const response = await fetch('https://www.tusoccermanager.com/h126-teamappearancesdb-html');
@@ -2130,14 +2187,36 @@
                 if (preContent) {
                     const lines = preContent.textContent.split('\n');
                     let currentSeason = null;
-                    teamAppearancesMap = {}; // Reiniciar
+                    let parsingParticipants = false;
+                    teamAppearancesMap = {};
+                    teamNationalitiesMap = {};
+
                     lines.forEach(line => {
                         line = line.trim();
                         if (line === '') return;
-                        const seasonMatch = line.match(/^TEMPORADA\s+(\d+)$/i);
-                        if (seasonMatch) {
-                            currentSeason = parseInt(seasonMatch[1], 10);
+
+                        if (line === 'PARTICIPANTES') {
+                            parsingParticipants = true;
+                            return;
+                        }
+                        if (line.startsWith('TEMPORADA')) {
+                            parsingParticipants = false;
+                            const seasonMatch = line.match(/^TEMPORADA\s+(\d+)$/i);
+                            if (seasonMatch) {
+                                currentSeason = parseInt(seasonMatch[1], 10);
+                            }
+                            return;
+                        }
+                        if (parsingParticipants) {
+                            // Formato: "Ajax (NED)"
+                            const match = line.match(/^(.+?)\s+\((\w+)\)$/);
+                            if (match) {
+                                const team = match[1].trim();
+                                const nationality = match[2].trim();
+                                teamNationalitiesMap[team] = nationality;
+                            }
                         } else if (currentSeason !== null) {
+                            // Es un equipo participante en una temporada
                             const team = line;
                             if (!teamAppearancesMap[team]) {
                                 teamAppearancesMap[team] = { count: 1, first: currentSeason, last: currentSeason };
@@ -2175,21 +2254,30 @@
             }
         }
 
+        // Construir lista de elementos buscables con normalizedName
         const allSearchableItems = [
-            ...competitions.map(comp => ({ type: 'competition', name: comp.name, id: comp.id })),
-            ...allTeams.map(team => ({ type: 'team', name: team })),
-            ...allManagers.map(manager => ({ type: 'manager', name: manager })),
-            ...allSelections.map(selection => ({ type: 'selection', name: selection }))
+            ...competitions.map(comp => ({ type: 'competition', name: comp.name, id: comp.id, normalizedName: normalizeString(comp.name) })),
+            ...allTeams.map(team => ({ type: 'team', name: team, normalizedName: normalizeString(team) })),
+            ...allManagers.map(manager => ({ type: 'manager', name: manager, normalizedName: normalizeString(manager) })),
+            ...allSelections.map(selection => ({ type: 'selection', name: selection, normalizedName: normalizeString(selection) }))
         ];
 
-        const fuseSearch = new Fuse(allSearchableItems, fuseOptions);
+        const fuseSearch = new Fuse(allSearchableItems, {
+            keys: ['name', 'normalizedName'],
+            threshold: 0.3,
+            getFn: (obj, path) => {
+                const val = Fuse.config.getFn(obj, path);
+                return typeof val === 'string' ? normalizeString(val) : val;
+            }
+        });
 
         function showSuggestions(input) {
             const suggestionsList = document.getElementById('suggestions');
             suggestionsList.innerHTML = '';
             selectedSuggestionIndex = -1;
             if (input.length > 0) {
-                const results = fuseSearch.search(input);
+                const normalizedInput = normalizeString(input);
+                const results = fuseSearch.search(normalizedInput);
                 results.forEach((result, index) => {
                     const li = document.createElement('li');
                     li.textContent = result.item.name;
@@ -2398,7 +2486,8 @@
             shieldsMap = loadedShields;
             competitionShieldsMap = loadedCompetitionShields;
             
-            await loadTeamAppearancesData(); // Cargar participaciones
+            await loadFlagsDatabase(); // Cargar banderas
+            await loadTeamAppearancesData(); // Cargar participaciones y nacionalidades
             await loadTeamOfYearData();
             
             const container = document.getElementById("competitions-container");
@@ -2758,11 +2847,44 @@
             recordsList.innerHTML = '';
             awardsList.innerHTML = '';
             sharedNote.innerHTML = '';
+            sharedNote.style.display = 'none';
             appearancesInfo.innerHTML = ''; // Limpiar participaciones
 
-            const existingShield = modalContent.querySelector('img');
-            if (existingShield) {
-                existingShield.remove();
+            // Eliminar cualquier escudo y bandera previos
+            const existingShield = modalContent.querySelector('img.team-shield');
+            if (existingShield) existingShield.remove();
+            const existingFlag = modalContent.querySelector('img.team-flag');
+            if (existingFlag) existingFlag.remove();
+            const existingCode = modalContent.querySelector('span.team-fifa-code');
+            if (existingCode) existingCode.remove();
+
+            // Mostrar nacionalidad y bandera si existe
+            const fifaCode = teamNationalitiesMap[teamName];
+            if (fifaCode && flagsMap[fifaCode]) {
+                const flagContainer = document.createElement('div');
+                flagContainer.style.display = 'flex';
+                flagContainer.style.alignItems = 'center';
+                flagContainer.style.gap = '0.5rem';
+                flagContainer.style.position = 'absolute';
+                flagContainer.style.top = '30px';
+                flagContainer.style.right = '110px'; // Dejar espacio para el escudo
+
+                const flagImg = document.createElement('img');
+                flagImg.src = flagsMap[fifaCode];
+                flagImg.alt = `Bandera de ${fifaCode}`;
+                flagImg.style.width = '24px';
+                flagImg.style.height = '16px';
+                flagImg.classList.add('team-flag');
+
+                const codeSpan = document.createElement('span');
+                codeSpan.textContent = `[${fifaCode}]`;
+                codeSpan.style.fontWeight = 'bold';
+                codeSpan.style.color = 'var(--primary-color)';
+                codeSpan.classList.add('team-fifa-code');
+
+                flagContainer.appendChild(flagImg);
+                flagContainer.appendChild(codeSpan);
+                modalContent.insertBefore(flagContainer, modalContent.firstChild);
             }
 
             const shieldUrl = shieldsMap[teamName];
@@ -2775,6 +2897,7 @@
                 shieldImg.style.position = 'absolute';
                 shieldImg.style.top = '30px';
                 shieldImg.style.right = '50px';
+                shieldImg.classList.add('team-shield');
                 modalContent.insertBefore(shieldImg, modalContent.firstChild);
             }
 
@@ -2808,7 +2931,7 @@
                 }
             });
 
-            trophiesCountElement.textContent = `Trofeos (${totalTrophies})`;
+            trophiesCountElement.textContent = `Títulos (${totalTrophies})`;
             runnerupsCountElement.textContent = `Subcampeonatos (${totalRunnerups})`;
 
             Object.entries(achievementsByComp).forEach(([compName, { champ, runner }]) => {
@@ -2834,9 +2957,15 @@
             records.forEach(record => {
                 const li = document.createElement('li');
                 const compShield = competitionShieldsMap[record.competition] || 'https://2img.net/i.imgur.com/Kz20esO.png';
-                li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${record.competition}"><strong>${record.competition}</strong> (${record.wins} títulos)${record.shared ? '*' : ''}`;
+                li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${record.competition}"><strong>${record.competition}</strong>&nbsp;(${record.wins} títulos)${record.shared ? '*' : ''}`;
                 recordsList.appendChild(li);
             });
+
+            // Nota de récord compartido (se coloca después de la lista de récords)
+            if (sharedRecords.length > 0) {
+                sharedNote.innerHTML = '*Récord compartido';
+                sharedNote.style.display = 'block';
+            }
 
             // Calcular premios (Equipo del año)
             const awards = teamOfYearData.filter(award => award.team === teamName);
@@ -2845,7 +2974,7 @@
             if (awards.length > 0) {
                 awards.forEach(award => {
                     const li = document.createElement('li');
-                    li.innerHTML = `<strong>Equipo del año TSM</strong> (Temporada ${award.season})`;
+                    li.innerHTML = `<strong>Equipo del año TSM</strong>&nbsp;(Temporada ${award.season})`;
                     awardsList.appendChild(li);
                 });
             } else {
@@ -2854,20 +2983,18 @@
                 awardsList.appendChild(li);
             }
 
-            // Mostrar participaciones
+            // Mostrar participaciones con etiquetas
             const appearances = teamAppearancesMap[teamName];
             if (appearances) {
                 appearancesInfo.innerHTML = `
-                    <p><strong>Total de temporadas:</strong> ${appearances.count}</p>
-                    <p><strong>Primera aparición:</strong> Temporada ${appearances.first}</p>
-                    <p><strong>Última aparición:</strong> Temporada ${appearances.last}</p>
+                    <div class="appearance-badges">
+                        <div class="appearance-badge"><i class="fas fa-calendar-alt"></i> Total: ${appearances.count}</div>
+                        <div class="appearance-badge"><i class="fas fa-play"></i> Primera: T${appearances.first}</div>
+                        <div class="appearance-badge"><i class="fas fa-flag-checkered"></i> Última: T${appearances.last}</div>
+                    </div>
                 `;
             } else {
                 appearancesInfo.innerHTML = '<p>No hay datos de participaciones.</p>';
-            }
-
-            if (sharedRecords.length > 0) {
-                sharedNote.innerHTML = '*Récord compartido';
             }
 
             if (totalTrophies === 0 && totalRunnerups === 0) {
@@ -2903,6 +3030,7 @@
             runnerList.innerHTML = '';
             recordsList.innerHTML = '';
             sharedNote.innerHTML = '';
+            sharedNote.style.display = 'none';
 
             const achievementsByComp = {};
             let totalTrophies = 0;
@@ -2934,7 +3062,7 @@
                 }
             });
 
-            trophiesCountElement.textContent = `Trofeos (${totalTrophies})`;
+            trophiesCountElement.textContent = `Títulos (${totalTrophies})`;
             runnerupsCountElement.textContent = `Subcampeonatos (${totalRunnerups})`;
 
             Object.entries(achievementsByComp).forEach(([compName, { champ, runner }]) => {
@@ -2960,12 +3088,13 @@
             records.forEach(record => {
                 const li = document.createElement('li');
                 const compShield = competitionShieldsMap[record.competition] || 'https://2img.net/i.imgur.com/Kz20esO.png';
-                li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${record.competition}"><strong>${record.competition}</strong> (${record.wins} títulos)${record.shared ? '*' : ''}`;
+                li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${record.competition}"><strong>${record.competition}</strong>&nbsp;(${record.wins} títulos)${record.shared ? '*' : ''}`;
                 recordsList.appendChild(li);
             });
 
             if (sharedRecords.length > 0) {
                 sharedNote.innerHTML = '*Récord compartido';
+                sharedNote.style.display = 'block';
             }
 
             if (champList.children.length === 0) {
@@ -2989,40 +3118,88 @@
 
         function copyAchievements(type) {
             let textToCopy = '';
+            let hasAsterisk = false;
+
             if (type === 'team') {
                 const teamName = document.getElementById('modal-team-name').textContent.replace('Logros de ', '');
                 textToCopy += `Logros de ${teamName}\n\n`;
-                textToCopy += `Trofeos:\n`;
-                document.querySelectorAll('#achievements-list-champ li').forEach(li => {
-                    textToCopy += `- ${li.textContent}\n`;
+
+                const champItems = document.querySelectorAll('#achievements-list-champ li');
+                textToCopy += `Títulos (${champItems.length}):\n`;
+                champItems.forEach(li => {
+                    let text = li.textContent;
+                    if (text.includes('*')) hasAsterisk = true;
+                    textToCopy += `- ${text}\n`;
                 });
-                textToCopy += `\nSubcampeonatos:\n`;
-                document.querySelectorAll('#achievements-list-runner li').forEach(li => {
-                    textToCopy += `- ${li.textContent}\n`;
+
+                const runnerItems = document.querySelectorAll('#achievements-list-runner li');
+                textToCopy += `\nSubcampeonatos (${runnerItems.length}):\n`;
+                runnerItems.forEach(li => {
+                    let text = li.textContent;
+                    if (text.includes('*')) hasAsterisk = true;
+                    textToCopy += `- ${text}\n`;
                 });
-                textToCopy += `\nRécords:\n`;
-                document.querySelectorAll('#achievements-list-records li').forEach(li => {
-                    textToCopy += `- ${li.textContent}\n`;
+
+                const recordsItems = document.querySelectorAll('#achievements-list-records li');
+                textToCopy += `\nRécords (${recordsItems.length}):\n`;
+                recordsItems.forEach(li => {
+                    let text = li.textContent;
+                    if (text.includes('*')) hasAsterisk = true;
+                    textToCopy += `- ${text}\n`;
                 });
-                textToCopy += `\nPremios:\n`;
-                document.querySelectorAll('#achievements-list-awards li').forEach(li => {
-                    textToCopy += `- ${li.textContent}\n`;
+
+                const awardsItems = document.querySelectorAll('#achievements-list-awards li');
+                textToCopy += `\nPremios (${awardsItems.length}):\n`;
+                awardsItems.forEach(li => {
+                    let text = li.textContent;
+                    if (text.includes('*')) hasAsterisk = true;
+                    textToCopy += `- ${text}\n`;
                 });
+
+                // Datos de participaciones
+                const appearances = teamAppearancesMap[teamName];
+                if (appearances) {
+                    textToCopy += `\nParticipaciones:\n`;
+                    textToCopy += `- Total de temporadas: ${appearances.count}\n`;
+                    textToCopy += `- Primera aparición: T${appearances.first}\n`;
+                    textToCopy += `- Última aparición: T${appearances.last}\n`;
+                }
+
+                if (hasAsterisk) {
+                    textToCopy += `\n* Récord compartido con otro(s) equipo(s)/manager(es).\n`;
+                }
+
             } else if (type === 'manager') {
                 const managerName = document.getElementById('modal-manager-name').textContent.replace('Logros de ', '');
                 textToCopy += `Logros de ${managerName}\n\n`;
-                textToCopy += `Trofeos:\n`;
-                document.querySelectorAll('#manager-achievements-list-champ li').forEach(li => {
-                    textToCopy += `- ${li.textContent}\n`;
+
+                const champItems = document.querySelectorAll('#manager-achievements-list-champ li');
+                textToCopy += `Títulos (${champItems.length}):\n`;
+                champItems.forEach(li => {
+                    let text = li.textContent;
+                    if (text.includes('*')) hasAsterisk = true;
+                    textToCopy += `- ${text}\n`;
                 });
-                textToCopy += `\nSubcampeonatos:\n`;
-                document.querySelectorAll('#manager-achievements-list-runner li').forEach(li => {
-                    textToCopy += `- ${li.textContent}\n`;
+
+                const runnerItems = document.querySelectorAll('#manager-achievements-list-runner li');
+                textToCopy += `\nSubcampeonatos (${runnerItems.length}):\n`;
+                runnerItems.forEach(li => {
+                    let text = li.textContent;
+                    if (text.includes('*')) hasAsterisk = true;
+                    textToCopy += `- ${text}\n`;
                 });
-                textToCopy += `\nRécords:\n`;
-                document.querySelectorAll('#manager-achievements-list-records li').forEach(li => {
-                    textToCopy += `- ${li.textContent}\n`;
+
+                const recordsItems = document.querySelectorAll('#manager-achievements-list-records li');
+                textToCopy += `\nRécords (${recordsItems.length}):\n`;
+                recordsItems.forEach(li => {
+                    let text = li.textContent;
+                    if (text.includes('*')) hasAsterisk = true;
+                    textToCopy += `- ${text}\n`;
                 });
+
+                if (hasAsterisk) {
+                    textToCopy += `\n* Récord compartido con otro(s) manager(es).\n`;
+                }
             }
 
             navigator.clipboard.writeText(textToCopy).then(() => {
@@ -3040,7 +3217,7 @@
 
         function showTab(tab) {
             currentTab = tab;
-            const buttons = document.querySelectorAll('.tab-button');
+            const buttons = document.querySelectorAll('#teams-modal .tab-button');
             buttons.forEach(button => {
                 button.classList.remove('active');
                 if (button.querySelector('span').textContent.includes(tab === 'clubs' ? 'clubes' : tab === 'managers' ? 'mánagers' : 'selecciones')) {
@@ -3100,10 +3277,6 @@
                 });
                 entitiesList.appendChild(li);
             });
-        }
-
-        function normalizeString(str) {
-            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         }
 
         document.getElementById('competitions-container').addEventListener('click', (e) => {
@@ -3336,18 +3509,17 @@
 
         let allEntities = [];
         const entitiesFuseOptions = {
-            keys: ['name'],
-            threshold: 0.3,
-            ignoreDiacritics: true // Añadido para comparación
+            keys: ['name', 'normalizedName'],
+            threshold: 0.3
         };
         let entitiesFuse;
 
         function populateEntitiesList() {
             allTeams.sort((a, b) => a.localeCompare(b));
             allEntities = [
-                ...allTeams.map(name => ({ name, type: 'team' })),
-                ...allManagers.map(name => ({ name, type: 'manager' })),
-                ...allSelections.map(name => ({ name, type: 'selection' }))
+                ...allTeams.map(name => ({ name, type: 'team', normalizedName: normalizeString(name) })),
+                ...allManagers.map(name => ({ name, type: 'manager', normalizedName: normalizeString(name) })),
+                ...allSelections.map(name => ({ name, type: 'selection', normalizedName: normalizeString(name) }))
             ];
             entitiesFuse = new Fuse(allEntities, entitiesFuseOptions);
         }
@@ -3357,7 +3529,7 @@
             const suggestionsList = document.getElementById(suggestionsId);
             suggestionsList.innerHTML = '';
             if (input.value.length > 0) {
-                const results = entitiesFuse.search(input.value);
+                const results = entitiesFuse.search(normalizeString(input.value));
                 results.forEach(result => {
                     const li = document.createElement('li');
                     li.textContent = `${result.item.name} (${result.item.type === 'team' ? 'Equipo' : result.item.type === 'manager' ? 'Mánager' : 'Selección'})`;
@@ -4005,7 +4177,7 @@
                     <div class="ranking-position">${position}</div>
                     ${shieldHtml}
                     <div class="ranking-name">${item.name}</div>
-                    <div class="ranking-trophies">${item.trophies} trofeos</div>
+                    <div class="ranking-trophies">${item.trophies} títulos</div>
                 `;
                 
                 li.addEventListener('click', () => {
