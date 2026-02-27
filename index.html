@@ -2860,7 +2860,8 @@
 
             // Mostrar nacionalidad y bandera si existe
             const fifaCode = teamNationalitiesMap[teamName];
-            if (fifaCode && flagsMap[fifaCode]) {
+            const lowerCode = fifaCode ? fifaCode.toLowerCase() : null;
+            if (fifaCode && flagsMap[lowerCode]) {
                 const flagContainer = document.createElement('div');
                 flagContainer.style.display = 'flex';
                 flagContainer.style.alignItems = 'center';
@@ -2870,7 +2871,7 @@
                 flagContainer.style.right = '110px'; // Dejar espacio para el escudo
 
                 const flagImg = document.createElement('img');
-                flagImg.src = flagsMap[fifaCode];
+                flagImg.src = flagsMap[lowerCode];
                 flagImg.alt = `Bandera de ${fifaCode}`;
                 flagImg.style.width = '24px';
                 flagImg.style.height = '16px';
