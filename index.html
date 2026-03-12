@@ -360,6 +360,23 @@
             display: block;
         }
 
+        .suggestions li {
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: background-color var(--transition-speed) ease;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .suggestions li:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        .suggestions li:hover,
+        .suggestions li.selected {
+            background-color: rgba(66, 153, 225, 0.1);
+        }
+
         .teams-list {
             list-style: none;
             padding: 0;
@@ -1733,6 +1750,13 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            cursor: pointer;
+            color: var(--primary-color);
+            font-weight: 500;
+            transition: color var(--transition-speed) ease;
+        }
+        .awards-table .team-cell:hover {
+            color: var(--accent-color);
         }
         .awards-table .team-cell img {
             width: 24px;
@@ -1746,10 +1770,17 @@
         .awards-table .manager-cell:hover {
             color: var(--accent-color);
         }
+        .awards-table .manager-cell.disabled,
+        .awards-table .team-cell.disabled {
+            cursor: default;
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
         .awards-table .gala-link {
             color: var(--accent-color);
             font-size: 1.2rem;
             transition: transform var(--transition-speed) ease;
+            text-decoration: none;
         }
         .awards-table .gala-link:hover {
             transform: scale(1.2);
@@ -2014,7 +2045,7 @@
             </a>
             <a href="#" class="footer-link" onclick="showTeamOfYearModal(); return false;">
                 <i class="fas fa-star"></i>
-                <span>Equipo y entrenador del año TSM</span>
+                <span>Equipo y mánager del año TSM</span>
             </a>
             <a href="#" class="footer-link" onclick="showRankingModal(); return false;">
                 <i class="fas fa-trophy"></i>
@@ -2131,7 +2162,7 @@
     <div id="team-of-year-modal" class="modal">
         <div class="modal-content">
             <span class="close fas fa-times" onclick="closeModal('team-of-year-modal')"></span>
-            <h2><i class="fas fa-star"></i> Equipo y entrenador del año TSM</h2>
+            <h2><i class="fas fa-star"></i> Equipo y mánager del año TSM</h2>
             <div class="modal-body">
                 <div id="team-of-year-list" class="achievements-scroll"></div>
             </div>
@@ -2268,6 +2299,11 @@
             return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         }
 
+        // Función para limpiar nombres de mánager (quitar @ y comillas)
+        function cleanManagerName(name) {
+            return name.replace(/[@"]/g, '').trim();
+        }
+
         // Opciones de Fuse con ignorar diacríticos
         const fuseOptions = {
             keys: ['name'],
@@ -2283,14 +2319,15 @@
         let teamNationalitiesMap = {}; // Mapa de equipo -> código FIFA
         let flagsMap = {}; // Mapa de código FIFA -> URL de bandera
         let teamOfYearData = []; // Array de objetos { season, team, manager, url }
+        let seasonPeriods = {}; // Mapa de "Temporada X" a período (ej. "Abril 2010 → Agosto 2010")
 
         const allTeams = [
             "Ajax", "Anderlecht", "Anzhí Majachkalá", "Arsenal", "Aston Villa", "Atalanta", "Atlas", "Athletic Club", "Atlético de Madrid", "Auxerre", "AZ", "Barcelona", "Basilea", "Bayer Leverkusen", "Bayern de Múnich", "Benfica", "Boca Juniors", "Bolonia", "Borussia Dortmund", "Borussia Mönchengladbach", "Braga", "Caracas", "Catania", "Celtic", "Chelsea", "Chievo de Verona", "Club América", "Colo-Colo", "Colonia", "Colorado Rapids", "Copenhague", "CSKA de Moscú", "Cruz Azul", "DC United", "Deportivo de la Coruña", "Dínamo de Kiev", "Eintracht Frankfurt", "Espanyol", "Estudiantes de La Plata", "Everton", "Évian", "Fenerbahçe", "Feyenoord", "Fiorentina", "Friburgo", "Fulham", "Galatasaray", "Génova", "Getafe", "Girondins de Burdeos", "Hamburgo", "Hannover 96", "Hoffenheim", "Inter de Milán", "Internacional", "Juventus", "Lazio", "Leicester City", "Levante", "Liga de Quito", "Lille", "Liverpool", "Los Angeles Galaxy", "Málaga", "Mallorca", "Manchester City", "Manchester United", "Milan", "Mónaco", "Monterrey", "Montpellier", "Nancy", "Nacional", "Nápoles", "New England Revolution", "New York Red Bulls", "Newcastle United", "Norwich City", "Núremberg", "Once Caldas", "Olympiakós", "Olympique de Lyon", "Olympique de Marsella", "Osasuna", "Oporto", "Pachuca", "Palermo", "Panathinaikós", "Parma", "Peñarol", "PSG", "PSV", "Rangers", "RB Leipzig", "Real Madrid", "Real Sociedad", "River Plate", "Roma", "Rubin Kazan", "Saint-Étienne", "Sampdoria", "Santos", "São Paulo", "Schalke 04", "Sevilla", "Shakhtar Donetsk", "Sochaux", "Southampton", "Spartak de Moscú", "Sporting de Lisboa", "Stade Rennes", "Stoke City", "Stuttgart", "Sunderland", "Swansea City", "Tigres", "Toronto", "Tottenham Hotspur", "Toulouse", "Twente", "Udinese", "Valencia", "Valenciennes", "Villarreal", "Werder Bremen", "West Bromwich Albion", "Wolfsburgo", "Zenit"
         ].sort((a, b) => a.localeCompare(b));
 
         const allManagers = [
-            "1fantasma1", ".tinchobolso", "Aaron García", "abrodex", "Abian09", "adrimigage", "aguenteboca", "Alan", "ale7", "ale7", "Alexfernando", "alexmurcia", "AlexisUsle", "Alguero", "alvarocesc48", "AlxaN", "ansen17", "ari", "Arseneger", "atlas", "Benz9", "Benzema11", "Big Master", "bjavi9", "bkn", "Borjibiris35", "botiboti", "canna", "carie86", "cblanco10", "catacrack", "champ_8", "char10", "chelito", "Christian Ziege", "chulesama", "Connor", "Danko", "Davidfer03", "diegoc", "DiegoTristón", "dlv0507", "Edu4", "El-chachi", "ellocogrande", "eltpm20", "fabioFS", "Fabio2907", "Fabrizio", "facudobbo", "FalconXVI", "Fede!", "Fran_28", "franvilla7", "ficanoCR9", "Geminis20", "George1", "goose", "grg150", "ignacio", "ilmister", "Imanol", "Ivan_CARP", "Jaii28", "James Wales", "Javier_C.", "Javier García", "javier293", "javihazard17", "jesuscr7", "Joak", "Juanca", "juancho233", "juanje99", "jvdo2001", "KevinAnthony", "Kyon_Hirasawa", "LaloH93", "lucas_93", "lucfranz", "Luiche", "LugaP", "Marcosrc", "Math", "Matias33", "Maxi Signorelli", "Maximanya10", "mephisto9", "Messinho", "mikel19", "MinoRaiola", "Mister Fierro", "MisterRJ", "nanocaveda", "Neo150", "nicolasreye3", "osk_vlc", "osval99", "OttoMou", "Pablinho18", "Paisano24", "Petrer", "pinturicchio", "primo98", "Ramiro12", "roberto.martinez", "Rodo", "Roger", "rojo", "S13P", "sebas9406", "sghjeds", "snow13", "SonK", "sting", "Stm46", "sudordecamacho", "Super Duncan", "Tavlaridis", "The_Effect_2000", "Thuram15", "Tinguili-CR7", "Tomer Hemed", "Tommy18S", "Trafalgar", "traifor", "valmi69", "veldrane7", "VictorPro", "VictorTigrero", "Villa36", "Vinalar", "Xx_AdRiAn_xX", "yair_rafael", "zizou"
-        ].map(name => name.replace(/[@"]/g, '')).sort((a, b) => a.localeCompare(b));
+            "1fantasma1", ".tinchobolso", "Aaron García", "abrodex", "Abian09", "adrimigage", "aguenteboca", "Alan", "ale7", "ale7", "Alexfernando", "alexmurcia", "AlexisUsle", "Alguero", "alvarocesc48", "AlxaN", "ansen17", "ari", "Arsene Wenger", "atlas", "Benz9", "Benzema11", "Big Master", "bjavi9", "bkn", "Borjibiris35", "botiboti", "canna", "carie86", "cblanco10", "catacrack", "champ_8", "char10", "chelito", "Christian Ziege", "chulesama", "Connor", "Danko", "Davidfer03", "diegoc", "DiegoTristón", "dlv0507", "Edu4", "El-chachi", "ellocogrande", "eltpm20", "fabioFS", "Fabio2907", "Fabrizio", "facudobbo", "FalconXVI", "Fede!", "Fran_28", "franvilla7", "ficanoCR9", "Geminis20", "George1", "goose", "grg150", "ignacio", "ilmister", "Imanol", "Ivan_CARP", "Jaii28", "James Wales", "Javier_C.", "Javier García", "javier293", "javihazard17", "jesuscr7", "Joak", "Juanca", "juancho233", "juanje99", "jvdo2001", "KevinAnthony", "Kyon_Hirasawa", "LaloH93", "lucas_93", "lucfranz", "Luiche", "LugaP", "Marcosrc", "Math", "Matias33", "Maxi Signorelli", "Maximanya10", "mephisto9", "Messinho", "mikel19", "MinoRaiola", "Mister Fierro", "MisterRJ", "nanocaveda", "Neo150", "nicolasreye3", "osk_vlc", "osval99", "OttoMou", "Pablinho18", "Paisano24", "Petrer", "pinturicchio", "primo98", "Ramiro12", "roberto.martinez", "Rodo", "Roger", "rojo", "S13P", "sebas9406", "sghjeds", "snow13", "SonK", "sting", "Stm46", "sudordecamacho", "Super Duncan", "Tavlaridis", "The_Effect_2000", "Thuram15", "Tinguili-CR7", "Tomer Hemed", "Tommy18S", "Trafalgar", "traifor", "valmi69", "veldrane7", "VictorPro", "VictorTigrero", "Villa36", "Vinalar", "Xx_AdRiAn_xX", "yair_rafael", "zizou"
+        ].map(name => cleanManagerName(name)).sort((a, b) => a.localeCompare(b));
 
         const allSelections = [
             "Alemania", "Arabia Saudita", "Argelia", "Argentina", "Australia", "Bélgica", "Bolivia", "Bosnia y Herzegovina", "Brasil", "Camerún", "Canadá", "Chile", "China", "Colombia", "Corea del Norte", "Corea del Sur", "Costa de Marfil", "Costa Rica", "Croacia", "Dinamarca", "Ecuador", "Egipto", "Emiratos Árabes Unidos", "Eslovaquia", "Eslovenia", "España", "Estados Unidos", "Francia", "Ghana", "Grecia", "Haití", "Honduras", "Inglaterra", "Irán", "Islandia", "Israel", "Italia", "Jamaica", "Japón", "Marruecos", "México", "Nigeria", "Noruega", "Nueva Zelanda", "Países Bajos", "Panamá", "Paraguay", "Perú", "Polonia", "Portugal", "Qatar", "República Checa", "República de Irlanda", "Rusia", "Senegal", "Serbia", "Sudáfrica", "Suecia", "Suiza", "Túnez", "Turquía", "Ucrania", "Uruguay", "Venezuela"
@@ -2426,7 +2463,33 @@
             }
         }
 
-        // Cargar datos de equipo y entrenador del año
+        // Cargar datos de período de temporadas
+        async function loadSeasonPeriods() {
+            try {
+                const response = await fetch('https://www.tusoccermanager.com/h115-seasonbyseason-html');
+                if (!response.ok) throw new Error('No se pudo cargar la información');
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const preContent = doc.querySelector('pre');
+                if (preContent) {
+                    const lines = preContent.textContent.split('\n').filter(line => line.trim() && !line.includes('TEMPORADAS'));
+                    lines.forEach(line => {
+                        // Formato: "Temporada 1: Abril 2010 → Agosto 2010"
+                        const match = line.match(/^Temporada\s+(\d+):\s*(.+)$/);
+                        if (match) {
+                            const num = match[1];
+                            const period = match[2].trim();
+                            seasonPeriods[`T${num}`] = period;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar períodos de temporadas:', error);
+            }
+        }
+
+        // Cargar datos de equipo y mánager del año
         async function loadTeamOfYearData() {
             try {
                 const response = await fetch('https://www.tusoccermanager.com/h116-teamandmanageroftheyear-html');
@@ -2437,15 +2500,17 @@
                 const preContent = doc.querySelector('pre');
 
                 if (preContent) {
-                    const lines = preContent.textContent.split('\n').filter(line => line.trim());
+                    const rawText = preContent.textContent;
+                    // Eliminar espacios iniciales y saltos de línea
+                    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l);
                     teamOfYearData = lines.map(line => {
-                        // Formato: "Temporada 1: Oporto / @juankibcn / https://..."
-                        const match = line.match(/^Temporada\s+(\d+):\s*(.+?)\s*\/\s*@?([^/]+?)\s*\/\s*(.+)$/);
+                        // Formato: "Temporada 1: Oporto / No se otorgó / No se celebró"
+                        const match = line.match(/^Temporada\s+(\d+):\s*(.+?)\s*\/\s*(.+?)\s*\/\s*(.+)$/);
                         if (match) {
                             return {
                                 season: match[1],
                                 team: match[2].trim(),
-                                manager: match[3].trim().replace(/[@"]/g, ''),
+                                manager: cleanManagerName(match[3].trim()),
                                 url: match[4].trim()
                             };
                         }
@@ -2453,7 +2518,7 @@
                     }).filter(item => item !== null);
                 }
             } catch (error) {
-                console.error('Error al cargar equipo y entrenador del año:', error);
+                console.error('Error al cargar equipo y mánager del año:', error);
             }
         }
 
@@ -2483,7 +2548,14 @@
                 const results = fuseSearch.search(normalizedInput);
                 results.forEach((result, index) => {
                     const li = document.createElement('li');
-                    li.textContent = result.item.name;
+                    let typeText = '';
+                    switch (result.item.type) {
+                        case 'competition': typeText = 'Competición'; break;
+                        case 'team': typeText = 'Club'; break;
+                        case 'manager': typeText = 'Mánager'; break;
+                        case 'selection': typeText = 'Selección'; break;
+                    }
+                    li.textContent = `${result.item.name} (${typeText})`;
                     li.setAttribute('data-type', result.item.type);
                     li.setAttribute('data-name', result.item.name);
                     li.setAttribute('data-id', result.item.id || '');
@@ -2740,6 +2812,7 @@
             
             await loadFlagsDatabase(); // Cargar banderas
             await loadTeamAppearancesData(); // Cargar participaciones y nacionalidades
+            await loadSeasonPeriods(); // Cargar períodos de temporadas
             await loadTeamOfYearData();
             
             const container = document.getElementById("competitions-container");
@@ -2795,20 +2868,30 @@
                         rows.forEach(row => {
                             const seasonCell = row.cells[0].textContent.trim();
                             const [season, edition] = seasonCell.split('(');
+                            const seasonClean = season.trim();
                             const editionClean = edition ? edition.replace(')', '') : '';
                             
                             if (edition) {
-                                row.cells[0].innerHTML = `${season} (<span class="edition-note">${editionClean}</span>)`;
+                                row.cells[0].innerHTML = `${seasonClean} (<span class="edition-note">${editionClean}</span>)`;
+                            }
+                            
+                            // Añadir tooltip con período de temporada
+                            const period = seasonPeriods[seasonClean];
+                            if (period) {
+                                row.cells[0].setAttribute('title', period);
                             }
                             
                             const champion = row.cells[1].textContent.trim();
                             const runnerUp = row.cells[2].textContent.trim();
+                            const managerChamp = cleanManagerName(row.cells[3].textContent);
+                            const managerRunner = cleanManagerName(row.cells[4].textContent);
+                            
                             const championShield = shieldsMap[champion] || '';
                             const runnerUpShield = shieldsMap[runnerUp] || '';
                             row.cells[1].innerHTML = `<span class="team-cell"><img src="${championShield}" width="24" height="24" alt="Escudo de ${champion}" style="margin-right: 0.5rem;">${champion}</span>`;
                             row.cells[2].innerHTML = `<span class="team-cell"><img src="${runnerUpShield}" width="24" height="24" alt="Escudo de ${runnerUp}" style="margin-right: 0.5rem;">${runnerUp}</span>`;
-                            row.cells[3].classList.add('manager-cell');
-                            row.cells[4].classList.add('manager-cell');
+                            row.cells[3].innerHTML = `<span class="manager-cell">${managerChamp}</span>`;
+                            row.cells[4].innerHTML = `<span class="manager-cell">${managerRunner}</span>`;
                             
                             uniqueChampions.add(champion);
                         });
@@ -2869,20 +2952,30 @@
                             rows.forEach(row => {
                                 const seasonCell = row.cells[0].textContent.trim();
                                 const [season, edition] = seasonCell.split('(');
+                                const seasonClean = season.trim();
                                 const editionClean = edition ? edition.replace(')', '') : '';
                                 
                                 if (edition) {
-                                    row.cells[0].innerHTML = `${season} (<span class="edition-note">${editionClean}</span>)`;
+                                    row.cells[0].innerHTML = `${seasonClean} (<span class="edition-note">${editionClean}</span>)`;
+                                }
+                                
+                                // Añadir tooltip con período de temporada
+                                const period = seasonPeriods[seasonClean];
+                                if (period) {
+                                    row.cells[0].setAttribute('title', period);
                                 }
                                 
                                 const champion = row.cells[1].textContent.trim();
                                 const runnerUp = row.cells[2].textContent.trim();
+                                const managerChamp = cleanManagerName(row.cells[3].textContent);
+                                const managerRunner = cleanManagerName(row.cells[4].textContent);
+                                
                                 const championShield = shieldsMap[champion] || '';
                                 const runnerUpShield = shieldsMap[runnerUp] || '';
                                 row.cells[1].innerHTML = `<span class="team-cell"><img src="${championShield}" width="24" height="24" alt="Escudo de ${champion}" style="margin-right: 0.5rem;">${champion}</span>`;
                                 row.cells[2].innerHTML = `<span class="team-cell"><img src="${runnerUpShield}" width="24" height="24" alt="Escudo de ${runnerUp}" style="margin-right: 0.5rem;">${runnerUp}</span>`;
-                                row.cells[3].classList.add('manager-cell');
-                                row.cells[4].classList.add('manager-cell');
+                                row.cells[3].innerHTML = `<span class="manager-cell">${managerChamp}</span>`;
+                                row.cells[4].innerHTML = `<span class="manager-cell">${managerRunner}</span>`;
                                 
                                 uniqueChampions.add(champion);
                             });
@@ -2930,8 +3023,8 @@
             const rows = tableContainer.querySelectorAll('tbody tr');
             const managers = new Set();
             rows.forEach(row => {
-                const managerChamp = row.cells[3].textContent.trim().replace(/[@"]/g, '');
-                const managerRunnerUp = row.cells[4].textContent.trim().replace(/[@"]/g, '');
+                const managerChamp = cleanManagerName(row.cells[3].textContent);
+                const managerRunnerUp = cleanManagerName(row.cells[4].textContent);
                 managers.add(managerChamp);
                 managers.add(managerRunnerUp);
             });
@@ -2966,8 +3059,8 @@
             rows.forEach(row => {
                 row.classList.remove('highlight-champion', 'highlight-runnerup');
                 if (manager) {
-                    const managerChamp = row.cells[3].textContent.trim().replace(/[@"]/g, '');
-                    const managerRunnerUp = row.cells[4].textContent.trim().replace(/[@"]/g, '');
+                    const managerChamp = cleanManagerName(row.cells[3].textContent);
+                    const managerRunnerUp = cleanManagerName(row.cells[4].textContent);
                     if (managerChamp === manager) row.classList.add('highlight-champion');
                     if (managerRunnerUp === manager) row.classList.add('highlight-runnerup');
                 }
@@ -3027,8 +3120,8 @@
                 const season = cells[0].textContent.trim().split('(')[0].trim();
                 const champion = cells[1].textContent.trim();
                 const runnerUp = cells[2].textContent.trim();
-                const managerChamp = cells[3].textContent.trim().replace(/[@"]/g, '');
-                const managerRunnerUp = cells[4].textContent.trim().replace(/[@"]/g, '');
+                const managerChamp = cleanManagerName(cells[3].textContent);
+                const managerRunnerUp = cleanManagerName(cells[4].textContent);
                 
                 // Equipos
                 if (!teamStats[champion]) teamStats[champion] = { champ: 0, runner: 0, champSeasons: [], runnerSeasons: [] };
@@ -3173,7 +3266,7 @@
                     if (type === 'team') {
                         winner = row.cells[1].textContent.trim();
                     } else if (type === 'manager') {
-                        winner = row.cells[3].textContent.trim().replace(/[@"]/g, '');
+                        winner = cleanManagerName(row.cells[3].textContent);
                     }
 
                     if (winner) {
@@ -3421,8 +3514,8 @@
                     const rows = tableContainer.querySelectorAll('tbody tr');
                     rows.forEach(row => {
                         const season = row.cells[0].textContent.trim().split('(')[0].trim();
-                        const managerChamp = row.cells[3].textContent.trim().replace(/[@"]/g, '');
-                        const managerRunnerUp = row.cells[4].textContent.trim().replace(/[@"]/g, '');
+                        const managerChamp = cleanManagerName(row.cells[3].textContent);
+                        const managerRunnerUp = cleanManagerName(row.cells[4].textContent);
                         if (managerChamp === managerName.replace(/[@"]/g, '')) {
                             if (!achievementsByComp[comp.name]) {
                                 achievementsByComp[comp.name] = { champ: [], runner: [] };
@@ -3443,9 +3536,9 @@
 
             const coachAwards = teamOfYearData.filter(award => award.manager === managerName);
             if (coachAwards.length > 0) {
-                achievementsByComp['Entrenador del año TSM'] = { champ: [], runner: [] };
+                achievementsByComp['Mánager del año TSM'] = { champ: [], runner: [] };
                 coachAwards.forEach(award => {
-                    achievementsByComp['Entrenador del año TSM'].champ.push(award.season);
+                    achievementsByComp['Mánager del año TSM'].champ.push(award.season);
                     totalTrophies++;
                 });
             }
@@ -3457,7 +3550,7 @@
                 if (champ.length > 0) {
                     const champSeasons = formatSeasons(champ.sort((a, b) => parseInt(a) - parseInt(b)));
                     const li = document.createElement('li');
-                    const compShield = competitionShieldsMap[compName] || (compName === 'Entrenador del año TSM' ? 'https://2img.net/i.imgur.com/0DnIEJu.png' : 'https://2img.net/i.imgur.com/Kz20esO.png');
+                    const compShield = competitionShieldsMap[compName] || (compName === 'Mánager del año TSM' ? 'https://2img.net/i.imgur.com/0DnIEJu.png' : 'https://2img.net/i.imgur.com/Kz20esO.png');
                     li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${compName}"><strong>${champ.length} ${compName}</strong>: ${champSeasons}`;
                     champList.appendChild(li);
                 }
@@ -3755,8 +3848,8 @@
                             competitionId: comp.id,
                             champion: row.cells[1].textContent.trim(),
                             runnerUp: row.cells[2].textContent.trim(),
-                            managerChamp: row.cells[3].textContent.trim(),
-                            managerRunnerUp: row.cells[4].textContent.trim()
+                            managerChamp: cleanManagerName(row.cells[3].textContent),
+                            managerRunnerUp: cleanManagerName(row.cells[4].textContent)
                         });
                     });
                 }
@@ -3956,8 +4049,8 @@
                     rows.forEach(row => {
                         const champion = row.cells[1].textContent.trim();
                         const runnerUp = row.cells[2].textContent.trim();
-                        const managerChamp = row.cells[3].textContent.trim().replace(/[@"]/g, '');
-                        const managerRunnerUp = row.cells[4].textContent.trim().replace(/[@"]/g, '');
+                        const managerChamp = cleanManagerName(row.cells[3].textContent);
+                        const managerRunnerUp = cleanManagerName(row.cells[4].textContent);
                         const season = row.cells[0].textContent.trim().split('(')[0].trim();
 
                         if (champion === entityName || runnerUp === entityName) {
@@ -4404,7 +4497,7 @@
                         }
                     });
 
-                    // Mostrar temporadas en texto plano, sin formato
+                    // Mostrar temporadas en texto plano
                     listContainer.innerHTML = seasonLines.map(line => {
                         return `<div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">${line.trim()}</div>`;
                     }).join('');
@@ -4435,10 +4528,10 @@
                 <table class="awards-table">
                     <thead>
                         <tr>
-                            <th>Temporada</th>
+                            <th>T</th>
                             <th>Equipo del año</th>
-                            <th>Entrenador del año</th>
-                            <th>Ver gala</th>
+                            <th>Mánager del año</th>
+                            <th>Gala</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -4447,12 +4540,16 @@
             teamOfYearData.forEach(item => {
                 const shieldUrl = shieldsMap[item.team] || '';
                 const shieldImg = shieldUrl ? `<img src="${shieldUrl}" alt="Escudo de ${item.team}" width="24" height="24">` : '';
+                const teamCellClass = (item.team === "Ningún equipo" || item.team === "No se otorgó") ? 'team-cell disabled' : 'team-cell';
+                const managerCellClass = (item.manager === "No se otorgó" || item.manager === "No se celebró") ? 'manager-cell disabled' : 'manager-cell';
+                const galaLink = (item.url && item.url !== "No se celebró" && item.url !== "No se otorgó") ? `<a href="${item.url}" target="_blank" class="gala-link" title="Ver gala de premios"><i class="fas fa-external-link-alt"></i></a>` : '—';
+                
                 tableHTML += `
                     <tr>
                         <td>${item.season}</td>
-                        <td class="team-cell">${shieldImg} ${item.team}</td>
-                        <td><span class="manager-cell" onclick="showManagerAchievements('${item.manager}')">@${item.manager}</span></td>
-                        <td><a href="${item.url}" target="_blank" class="gala-link" title="Ver gala de premios"><i class="fas fa-external-link-alt"></i></a></td>
+                        <td class="${teamCellClass}" ${item.team !== "Ningún equipo" && item.team !== "No se otorgó" ? `onclick="showTeamAchievements('${item.team}')"` : ''}>${shieldImg} ${item.team}</td>
+                        <td class="${managerCellClass}" ${item.manager !== "No se otorgó" && item.manager !== "No se celebró" ? `onclick="showManagerAchievements('${item.manager}')"` : ''}>${item.manager}</td>
+                        <td>${galaLink}</td>
                     </tr>
                 `;
             });
@@ -4498,7 +4595,7 @@
                     rows.forEach(row => {
                         const season = row.cells[0].textContent.trim().split('(')[0].trim();
                         if (limit > 0 && !seasonsToInclude.includes(season)) return;
-                        const managerChamp = row.cells[3].textContent.trim().replace(/[@"]/g, '');
+                        const managerChamp = cleanManagerName(row.cells[3].textContent);
                         managerStats[managerChamp] = (managerStats[managerChamp] || 0) + 1;
                     });
                 }
