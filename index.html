@@ -894,7 +894,7 @@
             overflow-y: hidden;
         }
         #team-of-year-modal .modal-body {
-            max-height: calc(80vh - 100px); /* Ajuste para que el contenido no se desborde */
+            max-height: calc(80vh - 100px);
         }
 
         /* Estilos específicos para el modal de ranking */
@@ -980,7 +980,7 @@
         #manager-achievements-list-champ,
         #manager-achievements-list-runner,
         #manager-achievements-list-records,
-        #manager-achievements-list-awards { /* MODIFICADO: Añadido para premios de mánager */
+        #manager-achievements-list-awards {
             list-style: none;
             padding: 0;
             margin: 1rem 0 1.5rem;
@@ -993,7 +993,7 @@
         #manager-achievements-list-champ li,
         #manager-achievements-list-runner li,
         #manager-achievements-list-records li,
-        #manager-achievements-list-awards li { /* MODIFICADO */
+        #manager-achievements-list-awards li {
             margin: 0.7rem 0;
             font-size: 1rem;
             color: var(--text-color);
@@ -1021,7 +1021,7 @@
         }
 
         #achievements-list-awards li:hover,
-        #manager-achievements-list-awards li:hover { /* MODIFICADO */
+        #manager-achievements-list-awards li:hover {
             background-color: rgba(75, 0, 130, 0.1);
         }
 
@@ -1056,7 +1056,7 @@
         }
 
         #achievements-list-awards li::before,
-        #manager-achievements-list-awards li::before { /* MODIFICADO */
+        #manager-achievements-list-awards li::before {
             content: '\f005';
             font-family: 'Font Awesome 6 Free';
             font-weight: 900;
@@ -1114,7 +1114,7 @@
         }
 
         #team-awards-count::before,
-        #manager-awards-count::before { /* MODIFICADO */
+        #manager-awards-count::before {
             content: '\f005';
             color: #6a0dad;
         }
@@ -1750,7 +1750,7 @@
         .awards-table td {
             padding: 0.8rem;
             text-align: left;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: none; /* MODIFICADO: eliminar líneas divisorias */
         }
         .awards-table th {
             background-color: var(--primary-color);
@@ -1979,6 +1979,38 @@
             font-size: 0.9rem;
             color: var(--text-secondary);
         }
+        /* MODIFICADO: Botón de captura */
+        .capture-btn {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            transition: transform var(--transition-speed) ease;
+        }
+        .capture-btn:hover {
+            transform: scale(1.1);
+        }
+        .capture-btn i {
+            font-size: 1.2rem;
+        }
+        /* MODIFICADO: Filtro por país en ranking */
+        .ranking-country-filter {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .ranking-country-select {
+            padding: 0.4rem 1rem;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            min-width: 150px;
+        }
     </style>
 </head>
 <body>
@@ -2128,7 +2160,6 @@
                     <i class="fas fa-database"></i>
                     <span>Central de datos y estadísticas</span>
                 </a>
-                <!-- MODIFICADO: Nuevo enlace a Clasificaciones históricas -->
                 <a href="https://alantsm.github.io/alltimetables/" target="_blank" class="footer-more-data-link">
                     <i class="fas fa-chart-line"></i>
                     <span>Clasificaciones históricas</span>
@@ -2167,7 +2198,7 @@
         </div>
     </div>
     
-    <!-- MODIFICADO: Añadida sección de premios en el modal de mánager -->
+    <!-- MODIFICADO: Añadida sección de premios y último título en el modal de mánager -->
     <div id="manager-achievements-modal" class="modal">
         <div class="modal-content">
             <button title="Ir a las listas" onclick="openTeamsModal()" style="position: absolute; left: 1rem; top: 1rem; background: none; border: none; color: var(--accent-color); font-size: 1.5rem; cursor: pointer;">
@@ -2183,6 +2214,8 @@
                 <ul id="manager-achievements-list-champ"></ul>
                 <h3 id="manager-runnerups-count">Subcampeonatos</h3>
                 <ul id="manager-achievements-list-runner"></ul>
+                <h3 id="manager-last-title">Temporada del último título</h3>
+                <div id="manager-last-title-info" style="margin-bottom: 1rem; padding: 0.7rem 1rem; background-color: var(--secondary-color); border-radius: 6px;"></div>
                 <h3 id="manager-records-count">Récords</h3>
                 <ul id="manager-achievements-list-records"></ul>
                 <div id="manager-record-shared-note" class="record-shared-note" style="display: none;"></div>
@@ -2209,7 +2242,13 @@
                     <span>Lista de selecciones</span>
                 </button>
             </div>
-            <input type="text" id="entities-search" class="search-input" placeholder="Buscar entre X clubes..." oninput="filterEntities()" />
+            <!-- MODIFICADO: Filtro por país en la pestaña de clubes -->
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                <input type="text" id="entities-search" class="search-input" style="width: 200px;" placeholder="Buscar entre X clubes..." oninput="filterEntities()" />
+                <select id="country-filter" class="ranking-country-select" onchange="filterEntities()" style="width: 150px;">
+                    <option value="">Todos los países</option>
+                </select>
+            </div>
             <ul id="entities-list" class="teams-list"></ul>
         </div>
     </div>
@@ -2243,8 +2282,9 @@
             <span class="close fas fa-times" onclick="closeModal('ranking-modal')"></span>
             <h2><i class="fas fa-trophy"></i> Ranking</h2>
             <div class="achievements-scroll">
+                <!-- MODIFICADO: Texto actualizado -->
                 <div class="ranking-note">
-                    <i class="fas fa-info-circle"></i> Las competiciones de filiales y femeninas no se incluyen en los rankings de mánagers y selecciones.
+                    <i class="fas fa-info-circle"></i> Las competiciones de filiales y femeninas no se incluyen en los rankings de clubes y selecciones.
                 </div>
                 <div class="tabs">
                     <button onclick="showRankingTab('clubs')" class="tab-button active">
@@ -2263,10 +2303,17 @@
                 <div class="ranking-filter-row">
                     <input type="text" id="ranking-search" class="search-input" placeholder="Buscar en el ranking..." oninput="filterRanking()" />
                     <select id="season-filter" class="season-select" onchange="applySeasonFilter()">
-                        <option value="0">Todas las temporadas</option>
+                        <option value="0">Todas las temp.</option> <!-- MODIFICADO -->
                         <option value="3">Últimas 3 temp.</option>
                         <option value="5">Últimas 5 temp.</option>
                         <option value="10">Últimas 10 temp.</option>
+                    </select>
+                </div>
+                <!-- MODIFICADO: Filtro por país en la pestaña de clubes -->
+                <div id="country-filter-container" class="ranking-country-filter" style="display: none;">
+                    <span class="ranking-filter-label">País:</span>
+                    <select id="ranking-country-select" class="ranking-country-select" onchange="filterRankingByCountry()">
+                        <option value="">Todos</option>
                     </select>
                 </div>
                 <div id="ranking-list" class="teams-list"></div>
@@ -2279,6 +2326,7 @@
     </button>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script> <!-- MODIFICADO: Para capturas -->
     <script>
         // ARRAY DE COMPETICIONES - ORDEN MODIFICADO
         const competitions = [
@@ -2389,6 +2437,7 @@
         let flagsMap = {}; // Mapa de código FIFA -> URL de bandera
         let teamOfYearData = []; // Array de objetos { season, team, manager, url }
         let seasonPeriods = {}; // Mapa de "Temporada X" a período (ej. "Abril 2010 → Agosto 2010")
+        let teamTitlesCount = {}; // MODIFICADO: Para llevar el contador de títulos por equipo y competición
 
         const allTeams = [
             "Ajax", "Anderlecht", "Anzhí Majachkalá", "Arsenal", "Aston Villa", "Atalanta", "Atlas", "Athletic Club", "Atlético de Madrid", "Auxerre", "AZ", "Barcelona", "Basilea", "Bayer Leverkusen", "Bayern de Múnich", "Benfica", "Boca Juniors", "Bolonia", "Borussia Dortmund", "Borussia Mönchengladbach", "Braga", "Caracas", "Catania", "Celtic", "Chelsea", "Chievo de Verona", "Club América", "Colo-Colo", "Colonia", "Colorado Rapids", "Copenhague", "CSKA de Moscú", "Cruz Azul", "DC United", "Deportivo de la Coruña", "Dínamo de Kiev", "Eintracht Frankfurt", "Espanyol", "Estudiantes de La Plata", "Everton", "Évian", "Fenerbahçe", "Feyenoord", "Fiorentina", "Friburgo", "Fulham", "Galatasaray", "Génova", "Getafe", "Girondins de Burdeos", "Hamburgo", "Hannover 96", "Hoffenheim", "Inter de Milán", "Internacional", "Juventus", "Lazio", "Leicester City", "Levante", "Liga de Quito", "Lille", "Liverpool", "Los Angeles Galaxy", "Málaga", "Mallorca", "Manchester City", "Manchester United", "Milan", "Mónaco", "Monterrey", "Montpellier", "Nancy", "Nacional", "Nápoles", "New England Revolution", "New York Red Bulls", "Newcastle United", "Norwich City", "Núremberg", "Once Caldas", "Olympiakós", "Olympique de Lyon", "Olympique de Marsella", "Osasuna", "Oporto", "Pachuca", "Palermo", "Panathinaikós", "Parma", "Peñarol", "PSG", "PSV", "Rangers", "RB Leipzig", "Real Madrid", "Real Sociedad", "River Plate", "Roma", "Rubin Kazan", "Saint-Étienne", "Sampdoria", "Santos", "São Paulo", "Schalke 04", "Sevilla", "Shakhtar Donetsk", "Sochaux", "Southampton", "Spartak de Moscú", "Sporting de Lisboa", "Stade Rennes", "Stoke City", "Stuttgart", "Sunderland", "Swansea City", "Tigres", "Toronto", "Tottenham Hotspur", "Toulouse", "Twente", "Udinese", "Valencia", "Valenciennes", "Villarreal", "Werder Bremen", "West Bromwich Albion", "Wolfsburgo", "Zenit"
@@ -2756,9 +2805,9 @@
                         <span>${competitionName} ${headerNote}</span>
                         <div>
                             <button class="btn" onclick="showCompetition('')" title="Volver"><i class="fas fa-arrow-left"></i></button>
-                            <button onclick="invertTable('${competitionId}')" class="btn">Invertir</button>
+                            <button onclick="invertTable('${competitionId}')" class="btn" title="Invertir tabla">Invertir</button> <!-- MODIFICADO -->
                             <button onclick="toggleRankings('rankings-${competitionId}')" class="btn">Rankings</button>
-                            <button onclick="toggleEvolution('evolution-${competitionId}')" class="btn">Evolución</button>
+                            <button onclick="toggleEvolution('evolution-${competitionId}')" class="btn" title="Ver evolución de tabla de ganadores">Evolución</button> <!-- MODIFICADO -->
                         </div>
                     </div>
                     <div class="competition-body">
@@ -2784,7 +2833,7 @@
                         </div>
                         <div id="table-${competitionId}-container"></div>
                         <div id="rankings-${competitionId}" class="rankings-container hidden" data-calculated="false">
-                            <!-- MODIFICADO: Filtros de rango de temporadas -->
+                            <!-- MODIFICADO: Filtros de rango de temporadas con botón de captura -->
                             <div class="ranking-filters">
                                 <span class="ranking-filter-label">Desde:</span>
                                 <select class="ranking-filter-select" id="from-season-${competitionId}" onchange="updateRankingRange('${competitionId}')">
@@ -2795,6 +2844,7 @@
                                     <option value="">Seleccionar</option>
                                 </select>
                                 <button class="clear-range" onclick="clearRankingRange('${competitionId}')" title="Restablecer filtros"><i class="fas fa-times-circle"></i></button>
+                                <button class="capture-btn" onclick="captureRanking('${competitionId}')" title="Capturar pantalla de la clasificación actual"><i class="fas fa-camera"></i></button>
                             </div>
                             <div class="rankings-tabs">
                                 <button class="rankings-tab active" data-rankings-id="${competitionId}" data-target="team">Equipos</button>
@@ -2911,7 +2961,27 @@
                     switchRankingsTab(rankingsId, target);
                 });
             });
+            // MODIFICADO: Poblar filtro de países en el modal de lista de clubes
+            populateCountryFilter();
         });
+
+        // MODIFICADO: Poblar filtro de países en el modal de lista de clubes
+        function populateCountryFilter() {
+            const countrySet = new Set();
+            allTeams.forEach(team => {
+                const country = teamNationalitiesMap[team];
+                if (country) countrySet.add(country);
+            });
+            const countries = Array.from(countrySet).sort();
+            const countrySelect = document.getElementById('country-filter');
+            countrySelect.innerHTML = '<option value="">Todos los países</option>';
+            countries.forEach(code => {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = code;
+                countrySelect.appendChild(option);
+            });
+        }
 
         function switchRankingsTab(compId, target) {
             // Quitar active de todos los tabs de esta competición
@@ -2943,7 +3013,10 @@
                         const table = tableContainer.querySelector('table');
                         const rows = table.querySelectorAll('tbody tr');
                         
-                        // Calcular equipos campeones distintos
+                        // Inicializar contador de títulos para esta competición
+                        if (!teamTitlesCount[comp.id]) teamTitlesCount[comp.id] = {};
+                        
+                        // Calcular equipos campeones distintos y llevar el contador de títulos por equipo
                         const uniqueChampions = new Set();
                         
                         rows.forEach(row => {
@@ -2967,9 +3040,19 @@
                             const managerChamp = cleanManagerName(row.cells[3].textContent);
                             const managerRunner = cleanManagerName(row.cells[4].textContent);
                             
+                            // Actualizar contador de títulos para el campeón
+                            if (!teamTitlesCount[comp.id][champion]) {
+                                teamTitlesCount[comp.id][champion] = 1;
+                            } else {
+                                teamTitlesCount[comp.id][champion]++;
+                            }
+                            
                             const championShield = shieldsMap[champion] || '';
                             const runnerUpShield = shieldsMap[runnerUp] || '';
-                            row.cells[1].innerHTML = `<span class="team-cell"><img src="${championShield}" width="24" height="24" alt="Escudo de ${champion}" style="margin-right: 0.5rem;">${champion}</span>`;
+                            // MODIFICADO: Añadir tooltip con el número de título para el campeón
+                            const championTitleCount = teamTitlesCount[comp.id][champion];
+                            const championTitleTooltip = ` title="${championTitleCount}º título"`;
+                            row.cells[1].innerHTML = `<span class="team-cell"${championTitleTooltip}><img src="${championShield}" width="24" height="24" alt="Escudo de ${champion}" style="margin-right: 0.5rem;">${champion}</span>`;
                             row.cells[2].innerHTML = `<span class="team-cell"><img src="${runnerUpShield}" width="24" height="24" alt="Escudo de ${runnerUp}" style="margin-right: 0.5rem;">${runnerUp}</span>`;
                             // MODIFICADO: Para "S.M." añadir tooltip y cursiva
                             const managerChampDisplay = managerChamp === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerChamp;
@@ -3030,6 +3113,8 @@
                             const table = tableContainer.querySelector('table');
                             const rows = table.querySelectorAll('tbody tr');
                             
+                            if (!teamTitlesCount[comp.id]) teamTitlesCount[comp.id] = {};
+                            
                             // Calcular equipos campeones distintos
                             const uniqueChampions = new Set();
                             
@@ -3054,11 +3139,18 @@
                                 const managerChamp = cleanManagerName(row.cells[3].textContent);
                                 const managerRunner = cleanManagerName(row.cells[4].textContent);
                                 
+                                if (!teamTitlesCount[comp.id][champion]) {
+                                    teamTitlesCount[comp.id][champion] = 1;
+                                } else {
+                                    teamTitlesCount[comp.id][champion]++;
+                                }
+                                
                                 const championShield = shieldsMap[champion] || '';
                                 const runnerUpShield = shieldsMap[runnerUp] || '';
-                                row.cells[1].innerHTML = `<span class="team-cell"><img src="${championShield}" width="24" height="24" alt="Escudo de ${champion}" style="margin-right: 0.5rem;">${champion}</span>`;
+                                const championTitleCount = teamTitlesCount[comp.id][champion];
+                                const championTitleTooltip = ` title="${championTitleCount}º título"`;
+                                row.cells[1].innerHTML = `<span class="team-cell"${championTitleTooltip}><img src="${championShield}" width="24" height="24" alt="Escudo de ${champion}" style="margin-right: 0.5rem;">${champion}</span>`;
                                 row.cells[2].innerHTML = `<span class="team-cell"><img src="${runnerUpShield}" width="24" height="24" alt="Escudo de ${runnerUp}" style="margin-right: 0.5rem;">${runnerUp}</span>`;
-                                // MODIFICADO: Para "S.M." añadir tooltip y cursiva
                                 const managerChampDisplay = managerChamp === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerChamp;
                                 const managerRunnerDisplay = managerRunner === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerRunner;
                                 row.cells[3].innerHTML = `<span class="manager-cell">${managerChampDisplay}</span>`;
@@ -3782,31 +3874,34 @@
             modal.classList.add('visible');
         }
 
-        // MODIFICADO: Sección de premios para mánager
+        // MODIFICADO: Sección de premios y último título para mánager
         function showManagerAchievements(managerName) {
             const modal = document.getElementById('manager-achievements-modal');
             const managerNameElement = document.getElementById('modal-manager-name');
             const champList = document.getElementById('manager-achievements-list-champ');
             const runnerList = document.getElementById('manager-achievements-list-runner');
             const recordsList = document.getElementById('manager-achievements-list-records');
-            const awardsList = document.getElementById('manager-achievements-list-awards'); // Nuevo
+            const awardsList = document.getElementById('manager-achievements-list-awards');
+            const lastTitleInfo = document.getElementById('manager-last-title-info');
             const sharedNote = document.getElementById('manager-record-shared-note');
             const trophiesCountElement = document.getElementById('manager-trophies-count');
             const runnerupsCountElement = document.getElementById('manager-runnerups-count');
             const recordsCountElement = document.getElementById('manager-records-count');
-            const awardsCountElement = document.getElementById('manager-awards-count'); // Nuevo
+            const awardsCountElement = document.getElementById('manager-awards-count');
             managerNameElement.textContent = `Logros de ${managerName.replace(/[@"]/g, '')}`;
             champList.innerHTML = '';
             runnerList.innerHTML = '';
             recordsList.innerHTML = '';
-            awardsList.innerHTML = ''; // Nuevo
+            awardsList.innerHTML = '';
+            lastTitleInfo.innerHTML = '';
             sharedNote.innerHTML = '';
             sharedNote.style.display = 'none';
 
             const achievementsByComp = {};
             let totalTrophies = 0;
             let totalRunnerups = 0;
-            let totalAwards = 0; // Nuevo
+            let totalAwards = 0;
+            let lastTitleSeason = -1;
 
             competitions.forEach(comp => {
                 const tableContainer = document.getElementById(`table-${comp.id}-container`);
@@ -3816,12 +3911,14 @@
                         const season = row.cells[0].textContent.trim().split('(')[0].trim();
                         const managerChamp = cleanManagerName(row.cells[3].textContent);
                         const managerRunnerUp = cleanManagerName(row.cells[4].textContent);
+                        const seasonNum = parseInt(season.replace('T', ''));
                         if (managerChamp === managerName.replace(/[@"]/g, '')) {
                             if (!achievementsByComp[comp.name]) {
                                 achievementsByComp[comp.name] = { champ: [], runner: [] };
                             }
                             achievementsByComp[comp.name].champ.push(season);
                             totalTrophies++;
+                            if (seasonNum > lastTitleSeason) lastTitleSeason = seasonNum;
                         }
                         if (managerRunnerUp === managerName.replace(/[@"]/g, '')) {
                             if (!achievementsByComp[comp.name]) {
@@ -3834,16 +3931,19 @@
                 }
             });
 
-            // Premios (Mánager del año) - mover de títulos a premios
+            // Premios (Mánager del año)
             const coachAwards = teamOfYearData.filter(award => award.manager === managerName);
-            if (coachAwards.length > 0) {
-                // No añadir a títulos
-                totalAwards = coachAwards.length;
-            }
+            totalAwards = coachAwards.length;
 
             trophiesCountElement.textContent = `Títulos (${totalTrophies})`;
             runnerupsCountElement.textContent = `Subcampeonatos (${totalRunnerups})`;
-            awardsCountElement.textContent = `Premios (${totalAwards})`; // Nuevo
+            awardsCountElement.textContent = `Premios (${totalAwards})`;
+
+            if (lastTitleSeason !== -1) {
+                lastTitleInfo.innerHTML = `<div class="appearance-badge"><i class="fas fa-trophy"></i> T${lastTitleSeason}</div>`;
+            } else {
+                lastTitleInfo.innerHTML = '<p>Ninguno.</p>';
+            }
 
             Object.entries(achievementsByComp).forEach(([compName, { champ, runner }]) => {
                 if (champ.length > 0) {
@@ -3862,13 +3962,13 @@
                 }
             });
 
-            // Añadir premios a la nueva sección
+            // Añadir premios en formato compacto
             if (coachAwards.length > 0) {
-                coachAwards.forEach(award => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<strong>Mánager del año TSM</strong>&nbsp;(Temporada ${award.season})`;
-                    awardsList.appendChild(li);
-                });
+                const seasons = coachAwards.map(a => a.season).sort((a, b) => parseInt(a) - parseInt(b));
+                const formattedSeasons = formatSeasons(seasons);
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>Mánager del año TSM</strong>: ${formattedSeasons}`;
+                awardsList.appendChild(li);
             } else {
                 const li = document.createElement('li');
                 li.textContent = 'Ninguno.';
@@ -3997,6 +4097,11 @@
                     textToCopy += `- ${text}\n`;
                 });
 
+                const lastTitle = document.getElementById('manager-last-title-info').textContent.trim();
+                if (lastTitle && lastTitle !== 'Ninguno.') {
+                    textToCopy += `\nÚltimo título: ${lastTitle}\n`;
+                }
+
                 if (hasAsterisk) {
                     textToCopy += `\n* Récord compartido con otro(s) manager(es).\n`;
                 }
@@ -4026,15 +4131,23 @@
             });
             
             const searchInput = document.getElementById('entities-search');
+            const countryFilter = document.getElementById('country-filter');
             if (tab === 'clubs') {
                 searchInput.placeholder = `Buscar entre ${allTeams.length} clubes...`;
+                searchInput.style.width = '200px';
+                countryFilter.style.display = 'inline-block';
+                filterEntities();
             } else if (tab === 'managers') {
                 searchInput.placeholder = `Buscar entre ${allManagers.length} mánagers...`;
+                searchInput.style.width = '200px';
+                countryFilter.style.display = 'none';
+                filterEntities();
             } else if (tab === 'selections') {
                 searchInput.placeholder = `Buscar entre ${allSelections.length} selecciones...`;
+                searchInput.style.width = '200px';
+                countryFilter.style.display = 'none';
+                filterEntities();
             }
-            
-            filterEntities();
         }
 
         function openTeamsModal() {
@@ -4045,6 +4158,7 @@
 
         function filterEntities() {
             const searchValue = normalizeString(document.getElementById('entities-search').value.toLowerCase());
+            const selectedCountry = document.getElementById('country-filter').value;
             const entitiesList = document.getElementById('entities-list');
             entitiesList.innerHTML = '';
             let entities;
@@ -4055,28 +4169,35 @@
             } else if (currentTab === 'selections') {
                 entities = allSelections;
             }
-            entities.filter(entity => normalizeString(entity.toLowerCase()).includes(searchValue)).forEach(entity => {
-                const li = document.createElement('li');
-                if (currentTab === 'clubs' || currentTab === 'selections') {
-                    const shieldUrl = shieldsMap[entity];
-                    if (shieldUrl) {
-                        li.innerHTML = `<img src="${shieldUrl}" width="24" height="24" alt="Escudo de ${entity}" style="margin-right: 0.5rem;"> ${entity}`;
+            entities
+                .filter(entity => {
+                    if (currentTab === 'clubs' && selectedCountry) {
+                        return teamNationalitiesMap[entity] === selectedCountry && normalizeString(entity.toLowerCase()).includes(searchValue);
+                    }
+                    return normalizeString(entity.toLowerCase()).includes(searchValue);
+                })
+                .forEach(entity => {
+                    const li = document.createElement('li');
+                    if (currentTab === 'clubs' || currentTab === 'selections') {
+                        const shieldUrl = shieldsMap[entity];
+                        if (shieldUrl) {
+                            li.innerHTML = `<img src="${shieldUrl}" width="24" height="24" alt="Escudo de ${entity}" style="margin-right: 0.5rem;"> ${entity}`;
+                        } else {
+                            li.textContent = entity;
+                        }
                     } else {
                         li.textContent = entity;
                     }
-                } else {
-                    li.textContent = entity;
-                }
-                li.addEventListener('click', () => {
-                    if (currentTab === 'clubs' || currentTab === 'selections') {
-                        showTeamAchievements(entity);
-                    } else if (currentTab === 'managers') {
-                        showManagerAchievements(entity);
-                    }
-                    closeModal('teams-modal');
+                    li.addEventListener('click', () => {
+                        if (currentTab === 'clubs' || currentTab === 'selections') {
+                            showTeamAchievements(entity);
+                        } else if (currentTab === 'managers') {
+                            showManagerAchievements(entity);
+                        }
+                        closeModal('teams-modal');
+                    });
+                    entitiesList.appendChild(li);
                 });
-                entitiesList.appendChild(li);
-            });
         }
 
         document.getElementById('competitions-container').addEventListener('click', (e) => {
@@ -4840,13 +4961,13 @@
             modal.classList.add('visible');
         }
 
-        // MODIFICADO: Cerrar modal antes de abrir logros
+        // MODIFICADO: Cerrar modal antes de abrir logros y eliminar bordes de filas
         async function showTeamOfYearModal() {
             const modal = document.getElementById('team-of-year-modal');
             const listContainer = document.getElementById('team-of-year-list');
 
             let tableHTML = `
-                <table class="awards-table">
+                <table class="awards-table" style="border-collapse: collapse;">
                     <thead>
                         <tr>
                             <th>T</th>
@@ -4865,7 +4986,6 @@
                 const managerCellClass = (item.manager === "No se otorgó" || item.manager === "No se celebró") ? 'manager-cell disabled' : 'manager-cell';
                 const galaLink = (item.url && item.url !== "No se celebró" && item.url !== "No se otorgó") ? `<a href="${item.url}" target="_blank" class="gala-link" title="Ver gala de premios"><i class="fas fa-external-link-alt"></i></a>` : '—';
                 
-                // MODIFICADO: Al hacer clic, cerrar este modal y luego mostrar logros
                 const teamOnClick = (item.team !== "Ningún equipo" && item.team !== "No se otorgó") ? `onclick="closeModal('team-of-year-modal'); showTeamAchievements('${item.team}')"` : '';
                 const managerOnClick = (item.manager !== "No se otorgó" && item.manager !== "No se celebró") ? `onclick="closeModal('team-of-year-modal'); showManagerAchievements('${item.manager}')"` : '';
 
@@ -4921,7 +5041,9 @@
                         const season = row.cells[0].textContent.trim().split('(')[0].trim();
                         if (limit > 0 && !seasonsToInclude.includes(season)) return;
                         const managerChamp = cleanManagerName(row.cells[3].textContent);
-                        managerStats[managerChamp] = (managerStats[managerChamp] || 0) + 1;
+                        if (managerChamp !== "S.M.") { // MODIFICADO: Excluir S.M.
+                            managerStats[managerChamp] = (managerStats[managerChamp] || 0) + 1;
+                        }
                     });
                 }
             });
@@ -4980,14 +5102,43 @@
             if (tab === 'clubs') {
                 count = rankingData.clubs.length;
                 searchInput.placeholder = `Buscar entre ${count} clubes...`;
+                document.getElementById('country-filter-container').style.display = 'flex';
+                populateCountryRankingFilter();
             } else if (tab === 'managers') {
                 count = rankingData.managers.length;
                 searchInput.placeholder = `Buscar entre ${count} mánagers...`;
+                document.getElementById('country-filter-container').style.display = 'none';
             } else if (tab === 'selections') {
                 count = rankingData.selections.length;
                 searchInput.placeholder = `Buscar entre ${count} selecciones...`;
+                document.getElementById('country-filter-container').style.display = 'none';
             }
             
+            filterRanking();
+        }
+
+        // MODIFICADO: Poblar filtro de países en el ranking de clubes
+        function populateCountryRankingFilter() {
+            const countrySet = new Set();
+            allTeams.forEach(team => {
+                const country = teamNationalitiesMap[team];
+                if (country) countrySet.add(country);
+            });
+            const countries = Array.from(countrySet).sort();
+            const select = document.getElementById('ranking-country-select');
+            select.innerHTML = '<option value="">Todos</option>';
+            countries.forEach(code => {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = code;
+                select.appendChild(option);
+            });
+        }
+
+        let currentCountryFilter = '';
+
+        function filterRankingByCountry() {
+            currentCountryFilter = document.getElementById('ranking-country-select').value;
             filterRanking();
         }
 
@@ -5005,9 +5156,12 @@
                 data = rankingData.selections;
             }
             
-            const filteredData = data.filter(item => 
-                normalizeString(item.name.toLowerCase()).includes(searchValue)
-            );
+            const filteredData = data.filter(item => {
+                if (currentRankingTab === 'clubs' && currentCountryFilter) {
+                    return teamNationalitiesMap[item.name] === currentCountryFilter && normalizeString(item.name.toLowerCase()).includes(searchValue);
+                }
+                return normalizeString(item.name.toLowerCase()).includes(searchValue);
+            });
             
             filteredData.forEach((item, index) => {
                 const li = document.createElement('li');
@@ -5047,6 +5201,35 @@
                 li.className = 'ranking-list-item';
                 li.innerHTML = `<div class="ranking-name" style="text-align: center; width: 100%;">No se encontraron resultados</div>`;
                 rankingList.appendChild(li);
+            }
+        }
+
+        // MODIFICADO: Función para capturar pantalla del ranking actual
+        async function captureRanking(compId) {
+            // Determinar qué tabla está activa
+            const activeTab = document.querySelector(`.rankings-tab[data-rankings-id="${compId}"].active`);
+            if (!activeTab) return;
+            const target = activeTab.dataset.target;
+            const contentDiv = document.querySelector(`[data-rankings-content="${compId}"][data-content="${target}"]`);
+            if (!contentDiv) return;
+
+            const captureBtn = document.querySelector(`#rankings-${compId} .capture-btn i`);
+            captureBtn.style.display = 'none'; // Ocultar icono durante la captura
+
+            try {
+                const canvas = await html2canvas(contentDiv, {
+                    scale: 2,
+                    backgroundColor: getComputedStyle(document.body).backgroundColor
+                });
+                const link = document.createElement('a');
+                link.download = `ranking-${compId}-${target}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('Error al capturar:', error);
+                alert('No se pudo capturar la imagen.');
+            } finally {
+                captureBtn.style.display = 'inline-block'; // Volver a mostrar
             }
         }
     </script>
