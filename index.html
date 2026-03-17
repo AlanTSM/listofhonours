@@ -889,6 +889,14 @@
             background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
         }
 
+        /* MODIFICADO: Eliminar scrollbar del modal de equipo y mánager del año */
+        #team-of-year-modal .modal-content {
+            overflow-y: hidden;
+        }
+        #team-of-year-modal .modal-body {
+            max-height: calc(80vh - 100px); /* Ajuste para que el contenido no se desborde */
+        }
+
         /* Estilos específicos para el modal de ranking */
         #ranking-modal .modal-content {
             max-width: 600px;
@@ -971,7 +979,8 @@
         #achievements-list-awards,
         #manager-achievements-list-champ,
         #manager-achievements-list-runner,
-        #manager-achievements-list-records {
+        #manager-achievements-list-records,
+        #manager-achievements-list-awards { /* MODIFICADO: Añadido para premios de mánager */
             list-style: none;
             padding: 0;
             margin: 1rem 0 1.5rem;
@@ -983,7 +992,8 @@
         #achievements-list-awards li,
         #manager-achievements-list-champ li,
         #manager-achievements-list-runner li,
-        #manager-achievements-list-records li {
+        #manager-achievements-list-records li,
+        #manager-achievements-list-awards li { /* MODIFICADO */
             margin: 0.7rem 0;
             font-size: 1rem;
             color: var(--text-color);
@@ -1010,7 +1020,8 @@
             background-color: rgba(255, 215, 0, 0.1);
         }
 
-        #achievements-list-awards li:hover {
+        #achievements-list-awards li:hover,
+        #manager-achievements-list-awards li:hover { /* MODIFICADO */
             background-color: rgba(75, 0, 130, 0.1);
         }
 
@@ -1044,7 +1055,8 @@
             color: #ff9800;
         }
 
-        #achievements-list-awards li::before {
+        #achievements-list-awards li::before,
+        #manager-achievements-list-awards li::before { /* MODIFICADO */
             content: '\f005';
             font-family: 'Font Awesome 6 Free';
             font-weight: 900;
@@ -1101,7 +1113,8 @@
             color: #ff9800;
         }
 
-        #team-awards-count::before {
+        #team-awards-count::before,
+        #manager-awards-count::before { /* MODIFICADO */
             content: '\f005';
             color: #6a0dad;
         }
@@ -1918,6 +1931,54 @@
                 transform: translateY(0);
             }
         }
+
+        /* MODIFICADO: Estilos para los filtros de rango de temporadas en rankings */
+        .ranking-filters {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .ranking-filter-select {
+            padding: 0.4rem 1rem;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232d3748' width='18px' height='18px'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            padding-right: 2rem;
+            min-width: 120px;
+        }
+        .ranking-filter-select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .clear-range {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all var(--transition-speed) ease;
+        }
+        .clear-range:hover {
+            background-color: rgba(0,0,0,0.05);
+            transform: scale(1.1);
+        }
+        .ranking-filter-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
     </style>
 </head>
 <body>
@@ -2053,7 +2114,7 @@
             </a>
         </div>
         <div class="footer-note">
-            Esta página muestra únicamente el palmarés de competiciones oficiales. Los torneos amistosos no están incluidos. Los títulos obtenidos por mánagers que hayan ejercido como interinos se contabilizan dentro del palmarés de dichos mánagers.
+            Esta página muestra únicamente el palmarés de competiciones oficiales. Los torneos amistosos no están incluidos. Los títulos obtenidos por mánagers que hayan ejercido como interinos se contabilizan dentro del palmarés de dichos mánagers. 'S.M.' significa "sin mánager".
         </div>
         
         <div class="footer-more-data">
@@ -2066,6 +2127,11 @@
                 <a href="https://alantsm.github.io/datacentre/" target="_blank" class="footer-more-data-link">
                     <i class="fas fa-database"></i>
                     <span>Central de datos y estadísticas</span>
+                </a>
+                <!-- MODIFICADO: Nuevo enlace a Clasificaciones históricas -->
+                <a href="https://alantsm.github.io/alltimetables/" target="_blank" class="footer-more-data-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Clasificaciones históricas</span>
                 </a>
                 <a href="https://www.tusoccermanager.com/h114-headtohead-html" target="_blank" class="footer-more-data-link">
                     <i class="fas fa-people-arrows"></i>
@@ -2101,6 +2167,7 @@
         </div>
     </div>
     
+    <!-- MODIFICADO: Añadida sección de premios en el modal de mánager -->
     <div id="manager-achievements-modal" class="modal">
         <div class="modal-content">
             <button title="Ir a las listas" onclick="openTeamsModal()" style="position: absolute; left: 1rem; top: 1rem; background: none; border: none; color: var(--accent-color); font-size: 1.5rem; cursor: pointer;">
@@ -2119,6 +2186,8 @@
                 <h3 id="manager-records-count">Récords</h3>
                 <ul id="manager-achievements-list-records"></ul>
                 <div id="manager-record-shared-note" class="record-shared-note" style="display: none;"></div>
+                <h3 id="manager-awards-count">Premios</h3>
+                <ul id="manager-achievements-list-awards"></ul>
             </div>
         </div>
     </div>
@@ -2715,6 +2784,18 @@
                         </div>
                         <div id="table-${competitionId}-container"></div>
                         <div id="rankings-${competitionId}" class="rankings-container hidden" data-calculated="false">
+                            <!-- MODIFICADO: Filtros de rango de temporadas -->
+                            <div class="ranking-filters">
+                                <span class="ranking-filter-label">Desde:</span>
+                                <select class="ranking-filter-select" id="from-season-${competitionId}" onchange="updateRankingRange('${competitionId}')">
+                                    <option value="">Seleccionar</option>
+                                </select>
+                                <span class="ranking-filter-label">Hasta:</span>
+                                <select class="ranking-filter-select" id="to-season-${competitionId}" disabled onchange="updateRankingRange('${competitionId}')">
+                                    <option value="">Seleccionar</option>
+                                </select>
+                                <button class="clear-range" onclick="clearRankingRange('${competitionId}')" title="Restablecer filtros"><i class="fas fa-times-circle"></i></button>
+                            </div>
                             <div class="rankings-tabs">
                                 <button class="rankings-tab active" data-rankings-id="${competitionId}" data-target="team">Equipos</button>
                                 <button class="rankings-tab" data-rankings-id="${competitionId}" data-target="manager">Mánagers</button>
@@ -2890,8 +2971,11 @@
                             const runnerUpShield = shieldsMap[runnerUp] || '';
                             row.cells[1].innerHTML = `<span class="team-cell"><img src="${championShield}" width="24" height="24" alt="Escudo de ${champion}" style="margin-right: 0.5rem;">${champion}</span>`;
                             row.cells[2].innerHTML = `<span class="team-cell"><img src="${runnerUpShield}" width="24" height="24" alt="Escudo de ${runnerUp}" style="margin-right: 0.5rem;">${runnerUp}</span>`;
-                            row.cells[3].innerHTML = `<span class="manager-cell">${managerChamp}</span>`;
-                            row.cells[4].innerHTML = `<span class="manager-cell">${managerRunner}</span>`;
+                            // MODIFICADO: Para "S.M." añadir tooltip y cursiva
+                            const managerChampDisplay = managerChamp === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerChamp;
+                            const managerRunnerDisplay = managerRunner === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerRunner;
+                            row.cells[3].innerHTML = `<span class="manager-cell">${managerChampDisplay}</span>`;
+                            row.cells[4].innerHTML = `<span class="manager-cell">${managerRunnerDisplay}</span>`;
                             
                             uniqueChampions.add(champion);
                         });
@@ -2974,8 +3058,11 @@
                                 const runnerUpShield = shieldsMap[runnerUp] || '';
                                 row.cells[1].innerHTML = `<span class="team-cell"><img src="${championShield}" width="24" height="24" alt="Escudo de ${champion}" style="margin-right: 0.5rem;">${champion}</span>`;
                                 row.cells[2].innerHTML = `<span class="team-cell"><img src="${runnerUpShield}" width="24" height="24" alt="Escudo de ${runnerUp}" style="margin-right: 0.5rem;">${runnerUp}</span>`;
-                                row.cells[3].innerHTML = `<span class="manager-cell">${managerChamp}</span>`;
-                                row.cells[4].innerHTML = `<span class="manager-cell">${managerRunner}</span>`;
+                                // MODIFICADO: Para "S.M." añadir tooltip y cursiva
+                                const managerChampDisplay = managerChamp === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerChamp;
+                                const managerRunnerDisplay = managerRunner === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerRunner;
+                                row.cells[3].innerHTML = `<span class="manager-cell">${managerChampDisplay}</span>`;
+                                row.cells[4].innerHTML = `<span class="manager-cell">${managerRunnerDisplay}</span>`;
                                 
                                 uniqueChampions.add(champion);
                             });
@@ -3039,6 +3126,52 @@
             });
         }
 
+        // MODIFICADO: Función para hacer scroll a la temporada más reciente de un equipo
+        function scrollToTeamSeason(compId, team) {
+            const tableContainer = document.getElementById(`table-${compId}-container`);
+            const rows = tableContainer.querySelectorAll('tbody tr');
+            let latestSeason = -1;
+            let targetRow = null;
+            rows.forEach(row => {
+                const champion = row.cells[1].textContent.trim();
+                const runnerUp = row.cells[2].textContent.trim();
+                if (champion === team || runnerUp === team) {
+                    const seasonText = row.cells[0].textContent.trim();
+                    const seasonNum = parseInt(seasonText.replace('T', ''));
+                    if (seasonNum > latestSeason) {
+                        latestSeason = seasonNum;
+                        targetRow = row;
+                    }
+                }
+            });
+            if (targetRow) {
+                targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // MODIFICADO: Función para hacer scroll a la temporada más reciente de un mánager
+        function scrollToManagerSeason(compId, manager) {
+            const tableContainer = document.getElementById(`table-${compId}-container`);
+            const rows = tableContainer.querySelectorAll('tbody tr');
+            let latestSeason = -1;
+            let targetRow = null;
+            rows.forEach(row => {
+                const managerChamp = cleanManagerName(row.cells[3].textContent);
+                const managerRunner = cleanManagerName(row.cells[4].textContent);
+                if (managerChamp === manager || managerRunner === manager) {
+                    const seasonText = row.cells[0].textContent.trim();
+                    const seasonNum = parseInt(seasonText.replace('T', ''));
+                    if (seasonNum > latestSeason) {
+                        latestSeason = seasonNum;
+                        targetRow = row;
+                    }
+                }
+            });
+            if (targetRow) {
+                targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
         function highlightTeam(compId, team) {
             const tableContainer = document.getElementById(`table-${compId}-container`);
             const rows = tableContainer.querySelectorAll('tbody tr');
@@ -3051,6 +3184,9 @@
                     if (runnerUp === team) row.classList.add('highlight-runnerup');
                 }
             });
+            if (team) {
+                scrollToTeamSeason(compId, team);
+            }
         }
 
         function highlightManager(compId, manager) {
@@ -3065,6 +3201,9 @@
                     if (managerRunnerUp === manager) row.classList.add('highlight-runnerup');
                 }
             });
+            if (manager) {
+                scrollToManagerSeason(compId, manager);
+            }
         }
 
         function clearTeamSelection(compId) {
@@ -3089,6 +3228,7 @@
                     rankingsElement.scrollIntoView({ behavior: 'smooth' });
                 }, 10);
                 if (rankingsElement.getAttribute('data-calculated') === 'false') {
+                    populateSeasonFilters(compId); // MODIFICADO: Llenar filtros de temporada
                     calculateRankings(compId);
                     if (countryRankingCompetitions.includes(compId)) {
                         calculateCountryRankings(compId);
@@ -3103,6 +3243,89 @@
             }
         }
 
+        // MODIFICADO: Llenar los selects de rango de temporadas
+        function populateSeasonFilters(compId) {
+            const tableContainer = document.getElementById(`table-${compId}-container`);
+            const rows = tableContainer.querySelectorAll('tbody tr');
+            const seasonsSet = new Set();
+            rows.forEach(row => {
+                const seasonText = row.cells[0].textContent.trim().split('(')[0].trim();
+                seasonsSet.add(seasonText);
+            });
+            const seasons = Array.from(seasonsSet).sort((a, b) => {
+                const numA = parseInt(a.replace('T', ''));
+                const numB = parseInt(b.replace('T', ''));
+                return numA - numB;
+            });
+
+            const fromSelect = document.getElementById(`from-season-${compId}`);
+            const toSelect = document.getElementById(`to-season-${compId}`);
+            fromSelect.innerHTML = '<option value="">Seleccionar</option>';
+            toSelect.innerHTML = '<option value="">Seleccionar</option>';
+
+            seasons.forEach(season => {
+                const option = document.createElement('option');
+                option.value = season;
+                option.textContent = season;
+                fromSelect.appendChild(option);
+            });
+
+            // El select "Hasta" se habilita solo cuando se selecciona "Desde"
+            fromSelect.addEventListener('change', function() {
+                const selectedFrom = this.value;
+                if (selectedFrom) {
+                    toSelect.disabled = false;
+                    // Filtrar opciones de "Hasta" para que sean >= "Desde"
+                    const fromNum = parseInt(selectedFrom.replace('T', ''));
+                    toSelect.innerHTML = '<option value="">Seleccionar</option>';
+                    seasons.filter(s => parseInt(s.replace('T', '')) >= fromNum).forEach(season => {
+                        const option = document.createElement('option');
+                        option.value = season;
+                        option.textContent = season;
+                        toSelect.appendChild(option);
+                    });
+                } else {
+                    toSelect.disabled = true;
+                    toSelect.innerHTML = '<option value="">Seleccionar</option>';
+                }
+            });
+        }
+
+        // MODIFICADO: Actualizar rankings según el rango seleccionado
+        function updateRankingRange(compId) {
+            const fromSelect = document.getElementById(`from-season-${compId}`);
+            const toSelect = document.getElementById(`to-season-${compId}`);
+            const fromSeason = fromSelect.value;
+            const toSeason = toSelect.value;
+
+            if (fromSeason && toSeason) {
+                // Calcular rankings con el rango
+                calculateRankings(compId, fromSeason, toSeason);
+                if (countryRankingCompetitions.includes(compId)) {
+                    calculateCountryRankings(compId, fromSeason, toSeason);
+                }
+            } else {
+                // Si no hay rango completo, mostrar todos
+                calculateRankings(compId);
+                if (countryRankingCompetitions.includes(compId)) {
+                    calculateCountryRankings(compId);
+                }
+            }
+        }
+
+        // MODIFICADO: Restablecer filtros de rango
+        function clearRankingRange(compId) {
+            const fromSelect = document.getElementById(`from-season-${compId}`);
+            const toSelect = document.getElementById(`to-season-${compId}`);
+            fromSelect.value = '';
+            toSelect.disabled = true;
+            toSelect.innerHTML = '<option value="">Seleccionar</option>';
+            calculateRankings(compId);
+            if (countryRankingCompetitions.includes(compId)) {
+                calculateCountryRankings(compId);
+            }
+        }
+
         function formatSeasons(seasons) {
             if (!seasons || seasons.length === 0) return '';
             const sorted = [...seasons].sort((a, b) => parseInt(a) - parseInt(b));
@@ -3110,14 +3333,25 @@
             return sorted.slice(0, -1).join(', ') + ' y ' + sorted[sorted.length - 1];
         }
 
-        function calculateRankings(compId) {
+        // MODIFICADO: Aceptar parámetros de rango
+        function calculateRankings(compId, fromSeason = null, toSeason = null) {
             const tableContainerId = `table-${compId}-container`;
             const rows = document.querySelectorAll(`#${tableContainerId} table tbody tr`);
             const teamStats = {};
             const managerStats = {};
+
             rows.forEach(row => {
                 const cells = row.cells;
                 const season = cells[0].textContent.trim().split('(')[0].trim();
+                
+                // Aplicar filtro de rango
+                if (fromSeason && toSeason) {
+                    const seasonNum = parseInt(season.replace('T', ''));
+                    const fromNum = parseInt(fromSeason.replace('T', ''));
+                    const toNum = parseInt(toSeason.replace('T', ''));
+                    if (seasonNum < fromNum || seasonNum > toNum) return;
+                }
+
                 const champion = cells[1].textContent.trim();
                 const runnerUp = cells[2].textContent.trim();
                 const managerChamp = cleanManagerName(cells[3].textContent);
@@ -3180,13 +3414,23 @@
             </tr>`).join('');
         }
 
-        function calculateCountryRankings(compId) {
+        // MODIFICADO: Aceptar parámetros de rango
+        function calculateCountryRankings(compId, fromSeason = null, toSeason = null) {
             const tableContainerId = `table-${compId}-container`;
             const rows = document.querySelectorAll(`#${tableContainerId} table tbody tr`);
             const countryStats = {};
             rows.forEach(row => {
                 const cells = row.cells;
                 const season = cells[0].textContent.trim().split('(')[0].trim();
+                
+                // Aplicar filtro de rango
+                if (fromSeason && toSeason) {
+                    const seasonNum = parseInt(season.replace('T', ''));
+                    const fromNum = parseInt(fromSeason.replace('T', ''));
+                    const toNum = parseInt(toSeason.replace('T', ''));
+                    if (seasonNum < fromNum || seasonNum > toNum) return;
+                }
+
                 const champion = cells[1].textContent.trim();
                 const runnerUp = cells[2].textContent.trim();
                 const countryChamp = teamNationalitiesMap[champion];
@@ -3244,16 +3488,12 @@
             menu.classList.toggle('active');
         }
 
-        function formatSeasons(seasons) {
-            if (seasons.length === 0) return '';
-            if (seasons.length === 1) return seasons[0];
-            return seasons.slice(0, -1).join(', ') + ' y ' + seasons[seasons.length - 1];
-        }
-
+        // MODIFICADO: Función para calcular récords incluyendo premios
         function calculateRecords(entityName, type) {
             const records = [];
             const sharedRecords = [];
 
+            // Récords de competiciones (títulos)
             competitions.forEach(comp => {
                 const tableContainer = document.getElementById(`table-${comp.id}-container`);
                 if (!tableContainer) return;
@@ -3298,6 +3538,61 @@
                     }
                 }
             });
+
+            // Récords de premios (Equipo/Mánager del año)
+            if (type === 'team') {
+                const awardCounts = {};
+                teamOfYearData.forEach(award => {
+                    if (award.team) {
+                        awardCounts[award.team] = (awardCounts[award.team] || 0) + 1;
+                    }
+                });
+                let maxAwards = 0;
+                let topAwardees = [];
+                for (const [team, count] of Object.entries(awardCounts)) {
+                    if (count > maxAwards) {
+                        maxAwards = count;
+                        topAwardees = [team];
+                    } else if (count === maxAwards) {
+                        topAwardees.push(team);
+                    }
+                }
+                if (topAwardees.includes(entityName) && maxAwards > 0) {
+                    const isShared = topAwardees.length > 1;
+                    records.push({
+                        competition: 'Equipo del año TSM',
+                        wins: maxAwards,
+                        shared: isShared
+                    });
+                    if (isShared) sharedRecords.push('Equipo del año TSM');
+                }
+            } else if (type === 'manager') {
+                const awardCounts = {};
+                teamOfYearData.forEach(award => {
+                    if (award.manager) {
+                        awardCounts[award.manager] = (awardCounts[award.manager] || 0) + 1;
+                    }
+                });
+                let maxAwards = 0;
+                let topAwardees = [];
+                for (const [manager, count] of Object.entries(awardCounts)) {
+                    if (count > maxAwards) {
+                        maxAwards = count;
+                        topAwardees = [manager];
+                    } else if (count === maxAwards) {
+                        topAwardees.push(manager);
+                    }
+                }
+                if (topAwardees.includes(entityName) && maxAwards > 0) {
+                    const isShared = topAwardees.length > 1;
+                    records.push({
+                        competition: 'Mánager del año TSM',
+                        wins: maxAwards,
+                        shared: isShared
+                    });
+                    if (isShared) sharedRecords.push('Mánager del año TSM');
+                }
+            }
 
             return { records, sharedRecords };
         }
@@ -3431,8 +3726,8 @@
 
             records.forEach(record => {
                 const li = document.createElement('li');
-                const compShield = competitionShieldsMap[record.competition] || 'https://2img.net/i.imgur.com/Kz20esO.png';
-                li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${record.competition}"><strong>${record.competition}</strong>&nbsp;(${record.wins} títulos)${record.shared ? '*' : ''}`;
+                const compShield = competitionShieldsMap[record.competition] || (record.competition === 'Equipo del año TSM' ? 'https://2img.net/i.imgur.com/pA7xodV.png' : 'https://2img.net/i.imgur.com/Kz20esO.png');
+                li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${record.competition}"><strong>${record.competition}</strong>&nbsp;(${record.wins} ${record.competition.includes('año') ? 'premio' : 'título'}${record.wins > 1 ? 's' : ''})${record.shared ? '*' : ''}`;
                 recordsList.appendChild(li);
             });
 
@@ -3487,26 +3782,31 @@
             modal.classList.add('visible');
         }
 
+        // MODIFICADO: Sección de premios para mánager
         function showManagerAchievements(managerName) {
             const modal = document.getElementById('manager-achievements-modal');
             const managerNameElement = document.getElementById('modal-manager-name');
             const champList = document.getElementById('manager-achievements-list-champ');
             const runnerList = document.getElementById('manager-achievements-list-runner');
             const recordsList = document.getElementById('manager-achievements-list-records');
+            const awardsList = document.getElementById('manager-achievements-list-awards'); // Nuevo
             const sharedNote = document.getElementById('manager-record-shared-note');
             const trophiesCountElement = document.getElementById('manager-trophies-count');
             const runnerupsCountElement = document.getElementById('manager-runnerups-count');
             const recordsCountElement = document.getElementById('manager-records-count');
+            const awardsCountElement = document.getElementById('manager-awards-count'); // Nuevo
             managerNameElement.textContent = `Logros de ${managerName.replace(/[@"]/g, '')}`;
             champList.innerHTML = '';
             runnerList.innerHTML = '';
             recordsList.innerHTML = '';
+            awardsList.innerHTML = ''; // Nuevo
             sharedNote.innerHTML = '';
             sharedNote.style.display = 'none';
 
             const achievementsByComp = {};
             let totalTrophies = 0;
             let totalRunnerups = 0;
+            let totalAwards = 0; // Nuevo
 
             competitions.forEach(comp => {
                 const tableContainer = document.getElementById(`table-${comp.id}-container`);
@@ -3534,23 +3834,22 @@
                 }
             });
 
+            // Premios (Mánager del año) - mover de títulos a premios
             const coachAwards = teamOfYearData.filter(award => award.manager === managerName);
             if (coachAwards.length > 0) {
-                achievementsByComp['Mánager del año TSM'] = { champ: [], runner: [] };
-                coachAwards.forEach(award => {
-                    achievementsByComp['Mánager del año TSM'].champ.push(award.season);
-                    totalTrophies++;
-                });
+                // No añadir a títulos
+                totalAwards = coachAwards.length;
             }
 
             trophiesCountElement.textContent = `Títulos (${totalTrophies})`;
             runnerupsCountElement.textContent = `Subcampeonatos (${totalRunnerups})`;
+            awardsCountElement.textContent = `Premios (${totalAwards})`; // Nuevo
 
             Object.entries(achievementsByComp).forEach(([compName, { champ, runner }]) => {
                 if (champ.length > 0) {
                     const champSeasons = formatSeasons(champ.sort((a, b) => parseInt(a) - parseInt(b)));
                     const li = document.createElement('li');
-                    const compShield = competitionShieldsMap[compName] || (compName === 'Mánager del año TSM' ? 'https://2img.net/i.imgur.com/0DnIEJu.png' : 'https://2img.net/i.imgur.com/Kz20esO.png');
+                    const compShield = competitionShieldsMap[compName] || 'https://2img.net/i.imgur.com/Kz20esO.png';
                     li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${compName}"><strong>${champ.length} ${compName}</strong>: ${champSeasons}`;
                     champList.appendChild(li);
                 }
@@ -3563,13 +3862,26 @@
                 }
             });
 
+            // Añadir premios a la nueva sección
+            if (coachAwards.length > 0) {
+                coachAwards.forEach(award => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>Mánager del año TSM</strong>&nbsp;(Temporada ${award.season})`;
+                    awardsList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = 'Ninguno.';
+                awardsList.appendChild(li);
+            }
+
             const { records, sharedRecords } = calculateRecords(managerName.replace(/[@"]/g, ''), 'manager');
             recordsCountElement.textContent = `Récords (${records.length})`;
 
             records.forEach(record => {
                 const li = document.createElement('li');
-                const compShield = competitionShieldsMap[record.competition] || 'https://2img.net/i.imgur.com/Kz20esO.png';
-                li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${record.competition}"><strong>${record.competition}</strong>&nbsp;(${record.wins} títulos)${record.shared ? '*' : ''}`;
+                const compShield = competitionShieldsMap[record.competition] || (record.competition === 'Mánager del año TSM' ? 'https://2img.net/i.imgur.com/0DnIEJu.png' : 'https://2img.net/i.imgur.com/Kz20esO.png');
+                li.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${record.competition}"><strong>${record.competition}</strong>&nbsp;(${record.wins} ${record.competition.includes('año') ? 'premio' : 'título'}${record.wins > 1 ? 's' : ''})${record.shared ? '*' : ''}`;
                 recordsList.appendChild(li);
             });
 
@@ -3672,6 +3984,14 @@
                 const recordsItems = document.querySelectorAll('#manager-achievements-list-records li');
                 textToCopy += `\nRécords (${recordsItems.length}):\n`;
                 recordsItems.forEach(li => {
+                    let text = li.textContent;
+                    if (text.includes('*')) hasAsterisk = true;
+                    textToCopy += `- ${text}\n`;
+                });
+
+                const awardsItems = document.querySelectorAll('#manager-achievements-list-awards li');
+                textToCopy += `\nPremios (${awardsItems.length}):\n`;
+                awardsItems.forEach(li => {
                     let text = li.textContent;
                     if (text.includes('*')) hasAsterisk = true;
                     textToCopy += `- ${text}\n`;
@@ -4520,6 +4840,7 @@
             modal.classList.add('visible');
         }
 
+        // MODIFICADO: Cerrar modal antes de abrir logros
         async function showTeamOfYearModal() {
             const modal = document.getElementById('team-of-year-modal');
             const listContainer = document.getElementById('team-of-year-list');
@@ -4544,11 +4865,15 @@
                 const managerCellClass = (item.manager === "No se otorgó" || item.manager === "No se celebró") ? 'manager-cell disabled' : 'manager-cell';
                 const galaLink = (item.url && item.url !== "No se celebró" && item.url !== "No se otorgó") ? `<a href="${item.url}" target="_blank" class="gala-link" title="Ver gala de premios"><i class="fas fa-external-link-alt"></i></a>` : '—';
                 
+                // MODIFICADO: Al hacer clic, cerrar este modal y luego mostrar logros
+                const teamOnClick = (item.team !== "Ningún equipo" && item.team !== "No se otorgó") ? `onclick="closeModal('team-of-year-modal'); showTeamAchievements('${item.team}')"` : '';
+                const managerOnClick = (item.manager !== "No se otorgó" && item.manager !== "No se celebró") ? `onclick="closeModal('team-of-year-modal'); showManagerAchievements('${item.manager}')"` : '';
+
                 tableHTML += `
                     <tr>
                         <td>${item.season}</td>
-                        <td class="${teamCellClass}" ${item.team !== "Ningún equipo" && item.team !== "No se otorgó" ? `onclick="showTeamAchievements('${item.team}')"` : ''}>${shieldImg} ${item.team}</td>
-                        <td class="${managerCellClass}" ${item.manager !== "No se otorgó" && item.manager !== "No se celebró" ? `onclick="showManagerAchievements('${item.manager}')"` : ''}>${item.manager}</td>
+                        <td class="${teamCellClass}" ${teamOnClick}>${shieldImg} ${item.team}</td>
+                        <td class="${managerCellClass}" ${managerOnClick}>${item.manager}</td>
                         <td>${galaLink}</td>
                     </tr>
                 `;
