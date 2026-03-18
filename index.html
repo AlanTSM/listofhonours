@@ -1731,7 +1731,7 @@
             margin-bottom: 1rem;
         }
         .ranking-filter-row .search-input {
-            width: 200px;
+            width: 250px; /* MODIFICADO: más ancho */
         }
         .season-select {
             padding: 0.5rem;
@@ -2244,7 +2244,7 @@
             </div>
             <!-- MODIFICADO: Filtro por país en la pestaña de clubes -->
             <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                <input type="text" id="entities-search" class="search-input" style="width: 200px;" placeholder="Buscar entre X clubes..." oninput="filterEntities()" />
+                <input type="text" id="entities-search" class="search-input" style="width: 250px;" placeholder="Buscar entre X clubes..." oninput="filterEntities()" /> <!-- MODIFICADO: más ancho -->
                 <select id="country-filter" class="ranking-country-select" onchange="filterEntities()" style="width: 150px;">
                     <option value="">Todos los países</option>
                 </select>
@@ -2301,7 +2301,7 @@
                     </button>
                 </div>
                 <div class="ranking-filter-row">
-                    <input type="text" id="ranking-search" class="search-input" placeholder="Buscar en el ranking..." oninput="filterRanking()" />
+                    <input type="text" id="ranking-search" class="search-input" placeholder="Buscar en el ranking..." oninput="filterRanking()" /> <!-- MODIFICADO: ancho definido en CSS -->
                     <select id="season-filter" class="season-select" onchange="applySeasonFilter()">
                         <option value="0">Todas las temp.</option> <!-- MODIFICADO -->
                         <option value="3">Últimas 3 temp.</option>
@@ -2438,6 +2438,7 @@
         let teamOfYearData = []; // Array de objetos { season, team, manager, url }
         let seasonPeriods = {}; // Mapa de "Temporada X" a período (ej. "Abril 2010 → Agosto 2010")
         let teamTitlesCount = {}; // MODIFICADO: Para llevar el contador de títulos por equipo y competición
+        let managerTitlesCount = {}; // MODIFICADO: Para llevar el contador de títulos por mánager y competición
 
         const allTeams = [
             "Ajax", "Anderlecht", "Anzhí Majachkalá", "Arsenal", "Aston Villa", "Atalanta", "Atlas", "Athletic Club", "Atlético de Madrid", "Auxerre", "AZ", "Barcelona", "Basilea", "Bayer Leverkusen", "Bayern de Múnich", "Benfica", "Boca Juniors", "Bolonia", "Borussia Dortmund", "Borussia Mönchengladbach", "Braga", "Caracas", "Catania", "Celtic", "Chelsea", "Chievo de Verona", "Club América", "Colo-Colo", "Colonia", "Colorado Rapids", "Copenhague", "CSKA de Moscú", "Cruz Azul", "DC United", "Deportivo de la Coruña", "Dínamo de Kiev", "Eintracht Frankfurt", "Espanyol", "Estudiantes de La Plata", "Everton", "Évian", "Fenerbahçe", "Feyenoord", "Fiorentina", "Friburgo", "Fulham", "Galatasaray", "Génova", "Getafe", "Girondins de Burdeos", "Hamburgo", "Hannover 96", "Hoffenheim", "Inter de Milán", "Internacional", "Juventus", "Lazio", "Leicester City", "Levante", "Liga de Quito", "Lille", "Liverpool", "Los Angeles Galaxy", "Málaga", "Mallorca", "Manchester City", "Manchester United", "Milan", "Mónaco", "Monterrey", "Montpellier", "Nancy", "Nacional", "Nápoles", "New England Revolution", "New York Red Bulls", "Newcastle United", "Norwich City", "Núremberg", "Once Caldas", "Olympiakós", "Olympique de Lyon", "Olympique de Marsella", "Osasuna", "Oporto", "Pachuca", "Palermo", "Panathinaikós", "Parma", "Peñarol", "PSG", "PSV", "Rangers", "RB Leipzig", "Real Madrid", "Real Sociedad", "River Plate", "Roma", "Rubin Kazan", "Saint-Étienne", "Sampdoria", "Santos", "São Paulo", "Schalke 04", "Sevilla", "Shakhtar Donetsk", "Sochaux", "Southampton", "Spartak de Moscú", "Sporting de Lisboa", "Stade Rennes", "Stoke City", "Stuttgart", "Sunderland", "Swansea City", "Tigres", "Toronto", "Tottenham Hotspur", "Toulouse", "Twente", "Udinese", "Valencia", "Valenciennes", "Villarreal", "Werder Bremen", "West Bromwich Albion", "Wolfsburgo", "Zenit"
@@ -3015,8 +3016,9 @@
                         
                         // Inicializar contador de títulos para esta competición
                         if (!teamTitlesCount[comp.id]) teamTitlesCount[comp.id] = {};
+                        if (!managerTitlesCount[comp.id]) managerTitlesCount[comp.id] = {};
                         
-                        // Calcular equipos campeones distintos y llevar el contador de títulos por equipo
+                        // Calcular equipos campeones distintos y llevar el contador de títulos por equipo y manager
                         const uniqueChampions = new Set();
                         
                         rows.forEach(row => {
@@ -3040,11 +3042,20 @@
                             const managerChamp = cleanManagerName(row.cells[3].textContent);
                             const managerRunner = cleanManagerName(row.cells[4].textContent);
                             
-                            // Actualizar contador de títulos para el campeón
+                            // Actualizar contador de títulos para el campeón (equipo)
                             if (!teamTitlesCount[comp.id][champion]) {
                                 teamTitlesCount[comp.id][champion] = 1;
                             } else {
                                 teamTitlesCount[comp.id][champion]++;
+                            }
+                            
+                            // Actualizar contador de títulos para el mánager campeón
+                            if (managerChamp !== "S.M.") {
+                                if (!managerTitlesCount[comp.id][managerChamp]) {
+                                    managerTitlesCount[comp.id][managerChamp] = 1;
+                                } else {
+                                    managerTitlesCount[comp.id][managerChamp]++;
+                                }
                             }
                             
                             const championShield = shieldsMap[champion] || '';
@@ -3054,10 +3065,18 @@
                             const championTitleTooltip = ` title="${championTitleCount}º título"`;
                             row.cells[1].innerHTML = `<span class="team-cell"${championTitleTooltip}><img src="${championShield}" width="24" height="24" alt="Escudo de ${champion}" style="margin-right: 0.5rem;">${champion}</span>`;
                             row.cells[2].innerHTML = `<span class="team-cell"><img src="${runnerUpShield}" width="24" height="24" alt="Escudo de ${runnerUp}" style="margin-right: 0.5rem;">${runnerUp}</span>`;
-                            // MODIFICADO: Para "S.M." añadir tooltip y cursiva
-                            const managerChampDisplay = managerChamp === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerChamp;
+                            
+                            // MODIFICADO: Añadir tooltip con el número de título para el mánager campeón
+                            let managerChampDisplay = managerChamp === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerChamp;
+                            if (managerChamp !== "S.M.") {
+                                const managerTitleCount = managerTitlesCount[comp.id][managerChamp];
+                                const managerTitleTooltip = ` title="${managerTitleCount}º título"`;
+                                managerChampDisplay = `<span class="manager-cell"${managerTitleTooltip}>${managerChamp}</span>`;
+                            } else {
+                                managerChampDisplay = `<span class="manager-cell"><i title="Sin mánager">S.M.</i></span>`;
+                            }
                             const managerRunnerDisplay = managerRunner === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerRunner;
-                            row.cells[3].innerHTML = `<span class="manager-cell">${managerChampDisplay}</span>`;
+                            row.cells[3].innerHTML = managerChampDisplay;
                             row.cells[4].innerHTML = `<span class="manager-cell">${managerRunnerDisplay}</span>`;
                             
                             uniqueChampions.add(champion);
@@ -3114,6 +3133,7 @@
                             const rows = table.querySelectorAll('tbody tr');
                             
                             if (!teamTitlesCount[comp.id]) teamTitlesCount[comp.id] = {};
+                            if (!managerTitlesCount[comp.id]) managerTitlesCount[comp.id] = {};
                             
                             // Calcular equipos campeones distintos
                             const uniqueChampions = new Set();
@@ -3145,15 +3165,31 @@
                                     teamTitlesCount[comp.id][champion]++;
                                 }
                                 
+                                if (managerChamp !== "S.M.") {
+                                    if (!managerTitlesCount[comp.id][managerChamp]) {
+                                        managerTitlesCount[comp.id][managerChamp] = 1;
+                                    } else {
+                                        managerTitlesCount[comp.id][managerChamp]++;
+                                    }
+                                }
+                                
                                 const championShield = shieldsMap[champion] || '';
                                 const runnerUpShield = shieldsMap[runnerUp] || '';
                                 const championTitleCount = teamTitlesCount[comp.id][champion];
                                 const championTitleTooltip = ` title="${championTitleCount}º título"`;
                                 row.cells[1].innerHTML = `<span class="team-cell"${championTitleTooltip}><img src="${championShield}" width="24" height="24" alt="Escudo de ${champion}" style="margin-right: 0.5rem;">${champion}</span>`;
                                 row.cells[2].innerHTML = `<span class="team-cell"><img src="${runnerUpShield}" width="24" height="24" alt="Escudo de ${runnerUp}" style="margin-right: 0.5rem;">${runnerUp}</span>`;
-                                const managerChampDisplay = managerChamp === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerChamp;
+                                
+                                let managerChampDisplay = managerChamp === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerChamp;
+                                if (managerChamp !== "S.M.") {
+                                    const managerTitleCount = managerTitlesCount[comp.id][managerChamp];
+                                    const managerTitleTooltip = ` title="${managerTitleCount}º título"`;
+                                    managerChampDisplay = `<span class="manager-cell"${managerTitleTooltip}>${managerChamp}</span>`;
+                                } else {
+                                    managerChampDisplay = `<span class="manager-cell"><i title="Sin mánager">S.M.</i></span>`;
+                                }
                                 const managerRunnerDisplay = managerRunner === "S.M." ? '<i title="Sin mánager">S.M.</i>' : managerRunner;
-                                row.cells[3].innerHTML = `<span class="manager-cell">${managerChampDisplay}</span>`;
+                                row.cells[3].innerHTML = managerChampDisplay;
                                 row.cells[4].innerHTML = `<span class="manager-cell">${managerRunnerDisplay}</span>`;
                                 
                                 uniqueChampions.add(champion);
@@ -3828,15 +3864,16 @@
                 sharedNote.style.display = 'block';
             }
 
+            // MODIFICADO: Premios "Equipo del año TSM" en formato compacto
             const awards = teamOfYearData.filter(award => award.team === teamName);
             awardsCountElement.textContent = `Premios (${awards.length})`;
             
             if (awards.length > 0) {
-                awards.forEach(award => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<strong>Equipo del año TSM</strong>&nbsp;(Temporada ${award.season})`;
-                    awardsList.appendChild(li);
-                });
+                const awardSeasons = awards.map(a => a.season).sort((a, b) => parseInt(a) - parseInt(b));
+                const formattedSeasons = formatSeasons(awardSeasons);
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>Equipo del año TSM</strong>: ${formattedSeasons}`;
+                awardsList.appendChild(li);
             } else {
                 const li = document.createElement('li');
                 li.textContent = 'Ninguno.';
@@ -4134,17 +4171,17 @@
             const countryFilter = document.getElementById('country-filter');
             if (tab === 'clubs') {
                 searchInput.placeholder = `Buscar entre ${allTeams.length} clubes...`;
-                searchInput.style.width = '200px';
+                searchInput.style.width = '250px';
                 countryFilter.style.display = 'inline-block';
                 filterEntities();
             } else if (tab === 'managers') {
                 searchInput.placeholder = `Buscar entre ${allManagers.length} mánagers...`;
-                searchInput.style.width = '200px';
+                searchInput.style.width = '250px';
                 countryFilter.style.display = 'none';
                 filterEntities();
             } else if (tab === 'selections') {
                 searchInput.placeholder = `Buscar entre ${allSelections.length} selecciones...`;
-                searchInput.style.width = '200px';
+                searchInput.style.width = '250px';
                 countryFilter.style.display = 'none';
                 filterEntities();
             }
@@ -4961,10 +4998,13 @@
             modal.classList.add('visible');
         }
 
-        // MODIFICADO: Cerrar modal antes de abrir logros y eliminar bordes de filas
+        // MODIFICADO: Cerrar modal antes de abrir logros y eliminar bordes de filas. Invertir orden.
         async function showTeamOfYearModal() {
             const modal = document.getElementById('team-of-year-modal');
             const listContainer = document.getElementById('team-of-year-list');
+
+            // Invertir los datos para que las temporadas más recientes aparezcan primero
+            const reversedData = [...teamOfYearData].reverse();
 
             let tableHTML = `
                 <table class="awards-table" style="border-collapse: collapse;">
@@ -4979,7 +5019,7 @@
                     <tbody>
             `;
 
-            teamOfYearData.forEach(item => {
+            reversedData.forEach(item => {
                 const shieldUrl = shieldsMap[item.team] || '';
                 const shieldImg = shieldUrl ? `<img src="${shieldUrl}" alt="Escudo de ${item.team}" width="24" height="24">` : '';
                 const teamCellClass = (item.team === "Ningún equipo" || item.team === "No se otorgó") ? 'team-cell disabled' : 'team-cell';
