@@ -1060,50 +1060,6 @@
             text-align: left;
         }
 
-        #achievements-list-champ li::before,
-        #manager-achievements-list-champ li::before {
-            content: '\f091';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 0.9rem;
-            margin-right: 0.7rem;
-            color: var(--accent-color);
-            flex-shrink: 0;
-        }
-
-        #achievements-list-runner li::before,
-        #manager-achievements-list-runner li::before {
-            content: '\f5a2';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 0.9rem;
-            margin-right: 0.7rem;
-            color: var(--primary-color);
-            flex-shrink: 0;
-        }
-
-        #achievements-list-records li::before,
-        #manager-achievements-list-records li::before {
-            content: '\f02e';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 0.9rem;
-            margin-right: 0.7rem;
-            color: #ff9800;
-            flex-shrink: 0;
-        }
-
-        #achievements-list-awards li::before,
-        #manager-achievements-list-awards li::before {
-            content: '\f005';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 0.9rem;
-            margin-right: 0.7rem;
-            color: #6a0dad;
-            flex-shrink: 0;
-        }
-
         .record-shared-note {
             font-size: 0.8rem;
             color: var(--text-secondary);
@@ -1164,6 +1120,11 @@
             font-weight: 900;
             margin-right: 0.7rem;
             color: var(--primary-color);
+        }
+
+        #manager-top-team::before {
+            content: '\f1e3';
+            color: var(--accent-color);
         }
 
         #team-appearances-info {
@@ -1490,9 +1451,37 @@
             background-color: var(--secondary-color);
         }
 
-        .cam-highlight,
-        .sub-highlight {
+        .detailed-comparison.highlight-enabled td.cam-highlight {
+            background-color: rgba(255, 215, 0, 0.45) !important;
             font-weight: bold;
+        }
+        .detailed-comparison.highlight-enabled td.sub-highlight {
+            background-color: rgba(192, 192, 192, 0.55) !important;
+            font-weight: bold;
+        }
+        body.dark-mode .detailed-comparison.highlight-enabled td.cam-highlight {
+            background-color: rgba(255, 215, 0, 0.28) !important;
+        }
+        body.dark-mode .detailed-comparison.highlight-enabled td.sub-highlight {
+            background-color: rgba(192, 192, 192, 0.32) !important;
+        }
+
+        .highlight-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .highlight-checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--accent-color);
         }
 
         .season-input-container {
@@ -2298,6 +2287,8 @@
                 <div id="team-record-shared-note" class="record-shared-note" style="display: none;"></div>
                 <h3 id="team-awards-count">Premios</h3>
                 <ul id="achievements-list-awards"></ul>
+                <h3 id="team-top-manager">Mánager más laureado</h3>
+                <div id="team-top-manager-info" style="margin-bottom: 1rem; padding: 0.7rem 1rem; background-color: var(--secondary-color); border-radius: 6px;"></div>
                 <h3 id="team-appearances-count">Participaciones</h3>
                 <div id="team-appearances-info"></div>
             </div>
@@ -2326,6 +2317,8 @@
                 <div id="manager-record-shared-note" class="record-shared-note" style="display: none;"></div>
                 <h3 id="manager-awards-count">Premios</h3>
                 <ul id="manager-achievements-list-awards"></ul>
+                <h3 id="manager-top-team">Equipo con mayor número de éxitos</h3>
+                <div id="manager-top-team-info" style="margin-bottom: 1rem; padding: 0.7rem 1rem; background-color: var(--secondary-color); border-radius: 6px;"></div>
             </div>
         </div>
     </div>
@@ -2349,7 +2342,7 @@
             </div>
             <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                 <input type="text" id="entities-search" class="search-input" style="width: 250px;" placeholder="Buscar entre X clubes..." oninput="filterEntities()" />
-                <select id="country-filter" class="ranking-country-select" onchange="filterEntities()" style="width: 150px;">
+                <select id="country-filter" class="ranking-country-select" onchange="filterEntities()" style="width: 180px;">
                     <option value="">Todos los países</option>
                 </select>
             </div>
@@ -2674,8 +2667,8 @@
                             const team = parts[1].trim();
                             const cleanTeam = team.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\-\.]/g, '').trim();
                             if (cleanTeam.length > 0) {
-                                if (!teamSeasons[cleanTeam]) teamSeasons[cleanTeam] = [];
-                                teamSeasons[cleanTeam].push(currentSeason);
+                                if (!teamSeasons[cleanTeam]) teamSeasons[cleanTeam] = new Set();
+                                teamSeasons[cleanTeam].add(currentSeason);
                             }
                         }
                     }
@@ -2684,7 +2677,7 @@
                 teamAppearancesMap = {};
                 teamAllSeasonsMap = {};
                 for (const [team, seasons] of Object.entries(teamSeasons)) {
-                    const sorted = seasons.sort((a,b) => a - b);
+                    const sorted = Array.from(seasons).sort((a,b) => a - b);
                     teamAppearancesMap[team] = {
                         count: sorted.length,
                         first: sorted[0],
@@ -3512,9 +3505,18 @@
 
         function formatSeasons(seasons) {
             if (!seasons || seasons.length === 0) return '';
-            const sorted = [...seasons].sort((a, b) => parseInt(a) - parseInt(b));
+            const sorted = [...seasons].sort((a, b) => {
+                const numA = parseInt(String(a).replace('T', ''));
+                const numB = parseInt(String(b).replace('T', ''));
+                return numA - numB;
+            });
             if (sorted.length === 1) return sorted[0];
             return sorted.slice(0, -1).join(', ') + ' y ' + sorted[sorted.length - 1];
+        }
+
+        function formatSeasonsNoT(seasons) {
+            if (!seasons || seasons.length === 0) return '';
+            return formatSeasons(seasons).replace(/T/g, '');
         }
 
         function calculateRankings(compId, fromSeason = null, toSeason = null) {
@@ -3806,6 +3808,7 @@
             const recordsCountElement = document.getElementById('team-records-count');
             const awardsCountElement = document.getElementById('team-awards-count');
             const appearancesInfo = document.getElementById('team-appearances-info');
+            const topManagerInfo = document.getElementById('team-top-manager-info');
             const modalContent = document.querySelector('#team-achievements-modal .modal-content');
             const scrollContainer = modal.querySelector('.achievements-scroll');
 
@@ -3817,6 +3820,7 @@
             sharedNote.innerHTML = '';
             sharedNote.style.display = 'none';
             appearancesInfo.innerHTML = '';
+            topManagerInfo.innerHTML = '';
 
             const existingShield = modalContent.querySelector('img.team-shield');
             if (existingShield) existingShield.remove();
@@ -3909,13 +3913,11 @@
                 iconWrapper.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${compName}">`;
                 const textSpan = document.createElement('span');
                 textSpan.className = 'achievement-text';
-                const seasonsStr = formatSeasons(seasons.sort((a,b) => parseInt(a) - parseInt(b)));
+                const seasonsStr = formatSeasonsNoT(seasons);
                 textSpan.innerHTML = `<strong>${seasons.length} ${compName}</strong>: ${seasonsStr}`;
                 li.appendChild(iconWrapper);
                 li.appendChild(textSpan);
-                li.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                });
+                li.addEventListener('click', function(e) { e.stopPropagation(); });
                 return li;
             }
 
@@ -3956,7 +3958,7 @@
             
             if (awards.length > 0) {
                 const awardSeasons = awards.map(a => a.season).sort((a, b) => parseInt(a) - parseInt(b));
-                const formattedSeasons = formatSeasons(awardSeasons);
+                const formattedSeasons = formatSeasonsNoT(awardSeasons);
                 const li = document.createElement('li');
                 const iconWrapper = document.createElement('span');
                 iconWrapper.className = 'achievement-icon-wrapper';
@@ -3973,6 +3975,55 @@
                 li.textContent = 'Ninguno.';
                 li.addEventListener('click', function(e) { e.stopPropagation(); });
                 awardsList.appendChild(li);
+            }
+
+            // Mánager más laureado con este equipo
+            const managerStatsForTeam = {};
+            competitions.forEach(comp => {
+                const tableContainer = document.getElementById(`table-${comp.id}-container`);
+                if (!tableContainer) return;
+                const rows = tableContainer.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const season = row.cells[0].textContent.trim().split('(')[0].trim();
+                    const champion = row.cells[1].textContent.trim();
+                    const runnerUp = row.cells[2].textContent.trim();
+                    const managerChamp = cleanManagerName(row.cells[3].textContent);
+                    const managerRunnerUp = cleanManagerName(row.cells[4].textContent);
+                    if (champion === teamName && managerChamp !== "S.M.") {
+                        if (!managerStatsForTeam[managerChamp]) managerStatsForTeam[managerChamp] = { titles: 0, runnerUps: 0, seasons: [] };
+                        managerStatsForTeam[managerChamp].titles++;
+                        managerStatsForTeam[managerChamp].seasons.push(season);
+                    }
+                    if (runnerUp === teamName && managerRunnerUp !== "S.M.") {
+                        if (!managerStatsForTeam[managerRunnerUp]) managerStatsForTeam[managerRunnerUp] = { titles: 0, runnerUps: 0, seasons: [] };
+                        managerStatsForTeam[managerRunnerUp].runnerUps++;
+                    }
+                });
+            });
+            let bestManagerForTeam = null;
+            let bestManagerStats = null;
+            for (const [manager, stats] of Object.entries(managerStatsForTeam)) {
+                if (stats.titles === 0) continue;
+                const reachedSeason = Math.max(...stats.seasons.map(s => parseInt(s.replace('T', ''))));
+                const candidate = { manager, titles: stats.titles, runnerUps: stats.runnerUps, reachedSeason };
+                if (!bestManagerStats) { bestManagerStats = candidate; bestManagerForTeam = manager; continue; }
+                let better = false;
+                if (candidate.titles > bestManagerStats.titles) better = true;
+                else if (candidate.titles === bestManagerStats.titles) {
+                    if (candidate.runnerUps > bestManagerStats.runnerUps) better = true;
+                    else if (candidate.runnerUps === bestManagerStats.runnerUps) {
+                        if (candidate.reachedSeason < bestManagerStats.reachedSeason) better = true;
+                        else if (candidate.reachedSeason === bestManagerStats.reachedSeason && candidate.manager.localeCompare(bestManagerStats.manager) < 0) better = true;
+                    }
+                }
+                if (better) { bestManagerStats = candidate; bestManagerForTeam = manager; }
+            }
+            if (bestManagerForTeam) {
+                const t = bestManagerStats.titles;
+                const r = bestManagerStats.runnerUps;
+                topManagerInfo.innerHTML = `${bestManagerForTeam} (${t} título${t !== 1 ? 's' : ''}, ${r} subcampeonato${r !== 1 ? 's' : ''})`;
+            } else {
+                topManagerInfo.innerHTML = 'Ninguno.';
             }
 
             const appearances = teamAppearancesMap[teamName];
@@ -4062,6 +4113,7 @@
             const runnerupsCountElement = document.getElementById('manager-runnerups-count');
             const recordsCountElement = document.getElementById('manager-records-count');
             const awardsCountElement = document.getElementById('manager-awards-count');
+            const topTeamInfo = document.getElementById('manager-top-team-info');
             const scrollContainer = modal.querySelector('.achievements-scroll');
 
             managerNameElement.textContent = `Logros de ${managerName.replace(/[@"]/g, '')}`;
@@ -4072,6 +4124,7 @@
             lastTitleInfo.innerHTML = '';
             sharedNote.innerHTML = '';
             sharedNote.style.display = 'none';
+            topTeamInfo.innerHTML = '';
 
             const achievementsByComp = {};
             let totalTrophies = 0;
@@ -4115,7 +4168,7 @@
             awardsCountElement.textContent = `Premios (${totalAwards})`;
 
             if (lastTitleSeason !== -1) {
-                lastTitleInfo.innerHTML = `<div class="appearance-badge"><i class="fas fa-trophy"></i> T${lastTitleSeason}</div>`;
+                lastTitleInfo.innerHTML = `<div class="appearance-badge"><i class="fas fa-trophy"></i> ${lastTitleSeason}</div>`;
             } else {
                 lastTitleInfo.innerHTML = '<p>Ninguno.</p>';
             }
@@ -4128,7 +4181,7 @@
                 iconWrapper.innerHTML = `<img src="${compShield}" class="competition-icon" alt="Icono de ${compName}">`;
                 const textSpan = document.createElement('span');
                 textSpan.className = 'achievement-text';
-                const seasonsStr = formatSeasons(seasons.sort((a,b) => parseInt(a) - parseInt(b)));
+                const seasonsStr = formatSeasonsNoT(seasons);
                 textSpan.innerHTML = `<strong>${seasons.length} ${compName}</strong>: ${seasonsStr}`;
                 li.appendChild(iconWrapper);
                 li.appendChild(textSpan);
@@ -4147,7 +4200,7 @@
 
             if (coachAwards.length > 0) {
                 const seasons = coachAwards.map(a => a.season).sort((a, b) => parseInt(a) - parseInt(b));
-                const formattedSeasons = formatSeasons(seasons);
+                const formattedSeasons = formatSeasonsNoT(seasons);
                 const li = document.createElement('li');
                 const iconWrapper = document.createElement('span');
                 iconWrapper.className = 'achievement-icon-wrapper';
@@ -4187,6 +4240,58 @@
             if (sharedRecords.length > 0) {
                 sharedNote.innerHTML = '*Récord compartido';
                 sharedNote.style.display = 'block';
+            }
+
+            // Equipo con mayor número de éxitos para este mánager
+            const teamStatsForManager = {};
+            const managerNameClean = managerName.replace(/[@"]/g, '');
+            competitions.forEach(comp => {
+                const tableContainer = document.getElementById(`table-${comp.id}-container`);
+                if (!tableContainer) return;
+                const rows = tableContainer.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const season = row.cells[0].textContent.trim().split('(')[0].trim();
+                    const champion = row.cells[1].textContent.trim();
+                    const runnerUp = row.cells[2].textContent.trim();
+                    const managerChamp = cleanManagerName(row.cells[3].textContent);
+                    const managerRunnerUp = cleanManagerName(row.cells[4].textContent);
+                    if (managerChamp === managerNameClean) {
+                        if (!teamStatsForManager[champion]) teamStatsForManager[champion] = { titles: 0, runnerUps: 0, seasons: [] };
+                        teamStatsForManager[champion].titles++;
+                        teamStatsForManager[champion].seasons.push(season);
+                    }
+                    if (managerRunnerUp === managerNameClean) {
+                        if (!teamStatsForManager[runnerUp]) teamStatsForManager[runnerUp] = { titles: 0, runnerUps: 0, seasons: [] };
+                        teamStatsForManager[runnerUp].runnerUps++;
+                    }
+                });
+            });
+            let bestTeamForManager = null;
+            let bestTeamStats = null;
+            for (const [team, stats] of Object.entries(teamStatsForManager)) {
+                if (stats.titles === 0) continue;
+                const reachedSeason = Math.max(...stats.seasons.map(s => parseInt(s.replace('T', ''))));
+                const candidate = { team, titles: stats.titles, runnerUps: stats.runnerUps, reachedSeason };
+                if (!bestTeamStats) { bestTeamStats = candidate; bestTeamForManager = team; continue; }
+                let better = false;
+                if (candidate.titles > bestTeamStats.titles) better = true;
+                else if (candidate.titles === bestTeamStats.titles) {
+                    if (candidate.runnerUps > bestTeamStats.runnerUps) better = true;
+                    else if (candidate.runnerUps === bestTeamStats.runnerUps) {
+                        if (candidate.reachedSeason < bestTeamStats.reachedSeason) better = true;
+                        else if (candidate.reachedSeason === bestTeamStats.reachedSeason && candidate.team.localeCompare(bestTeamStats.team) < 0) better = true;
+                    }
+                }
+                if (better) { bestTeamStats = candidate; bestTeamForManager = team; }
+            }
+            if (bestTeamForManager) {
+                const t = bestTeamStats.titles;
+                const r = bestTeamStats.runnerUps;
+                const shieldUrl = shieldsMap[bestTeamForManager] || '';
+                const shieldImg = shieldUrl ? `<img src="${shieldUrl}" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 0.4rem;" alt="Escudo">` : '';
+                topTeamInfo.innerHTML = `${shieldImg}${bestTeamForManager} (${t} título${t !== 1 ? 's' : ''}, ${r} subcampeonato${r !== 1 ? 's' : ''})`;
+            } else {
+                topTeamInfo.innerHTML = 'Ninguno.';
             }
 
             if (champList.children.length === 0) {
@@ -4766,6 +4871,10 @@
                 </div>
                 <span class="more-details" onclick="toggleDetailedComparison()">Ver más</span>
                 <div class="detailed-comparison" id="detailed-comparison">
+                    <label class="highlight-checkbox-label">
+                        <input type="checkbox" id="highlight-highest" onchange="toggleHighlightHighest(this.checked)">
+                        Resaltar valores más altos
+                    </label>
                     <table>
                         <thead>
                             <tr>
@@ -4810,6 +4919,11 @@
 
             resultsContainer.classList.add('visible');
             document.getElementById('detailed-comparison').classList.remove('visible');
+        }
+
+        function toggleHighlightHighest(checked) {
+            const dc = document.getElementById('detailed-comparison');
+            if (dc) dc.classList.toggle('highlight-enabled', checked);
         }
 
         function toggleDetailedComparison() {
@@ -4871,7 +4985,8 @@
             rows.forEach(row => {
                 const season = row.cells[0].textContent.trim().split('(')[0].trim();
                 const champion = row.cells[1].textContent.trim();
-                seasonData.push({ season, champion });
+                const runnerUp = row.cells[2].textContent.trim();
+                seasonData.push({ season, champion, runnerUp });
             });
 
             seasonData.reverse();
@@ -4891,12 +5006,26 @@
                 }
             });
 
+            const teamRunnerUps = {};
+            uniqueTeams.forEach(team => {
+                teamRunnerUps[team] = new Array(seasonData.length).fill(0);
+            });
+            let cumulativeRunner = {};
+            seasonData.forEach((data, index) => {
+                if (!cumulativeRunner[data.runnerUp]) cumulativeRunner[data.runnerUp] = 0;
+                cumulativeRunner[data.runnerUp]++;
+                for (const team of uniqueTeams) {
+                    teamRunnerUps[team][index] = cumulativeRunner[team] || 0;
+                }
+            });
+
             const ctx = document.getElementById(`evolution-chart-${compId}`).getContext('2d');
             const colors = uniqueTeams.map(() => getRandomColor());
 
             const shieldPlugin = {
                 id: 'shieldPlugin',
                 afterDraw: function(chart) {
+                    if (chart.config.type !== 'bar') return;
                     const meta = chart.getDatasetMeta(0);
                     if (!meta || !meta.data) return;
                     const data = chart.data.datasets[0].data;
@@ -4904,9 +5033,7 @@
                     if (!data || !labels) return;
 
                     const ctx2 = chart.ctx;
-                    const yScale = chart.scales.y;
-                    const xScale = chart.scales.x;
-                    if (!yScale || !xScale) return;
+                    const isHorizontal = chart.options.indexAxis === 'y';
 
                     meta.data.forEach((element, index) => {
                         const label = labels[index];
@@ -4921,14 +5048,19 @@
                             });
                             return;
                         }
-                        const x = element.x;
-                        const y = element.y;
                         const width = 28;
                         const height = 28;
-                        const imageX = x - width / 2;
-                        const imageY = y - height - 6;
-                        const topLimit = 10;
-                        const finalY = Math.max(imageY, topLimit);
+                        let imageX, imageY;
+                        if (isHorizontal) {
+                            const barThickness = element.height || 30;
+                            const barTop = element.y - barThickness / 2;
+                            imageX = element.x - width / 2;
+                            imageY = barTop - height - 12;
+                        } else {
+                            imageX = element.x - width / 2;
+                            imageY = element.y - height - 12;
+                        }
+                        const finalY = Math.max(imageY, 2);
                         ctx2.drawImage(img, imageX, finalY, width, height);
                     });
                 }
@@ -4952,6 +5084,9 @@
                 },
                 options: {
                     indexAxis: 'y',
+                    layout: {
+                        padding: { top: 50, right: 40 }
+                    },
                     scales: {
                         x: {
                             beginAtZero: true,
@@ -4984,6 +5119,7 @@
 
             chart.seasonData = seasonData;
             chart.teamTitles = teamTitles;
+            chart.teamRunnerUps = teamRunnerUps;
             chart.totalEditions = seasonData.length;
 
             evolutionCharts[compId] = chart;
@@ -5127,19 +5263,28 @@
 
             const teamsWithTitles = [];
             const titlesUpToEdition = {};
+            const runnerUpsUpToEdition = {};
             for (let i = 0; i <= edition; i++) {
                 const champion = chart.seasonData[i].champion;
+                const runnerUp = chart.seasonData[i].runnerUp;
                 if (!titlesUpToEdition[champion]) {
                     titlesUpToEdition[champion] = 0;
                     teamsWithTitles.push(champion);
                 }
                 titlesUpToEdition[champion]++;
+                if (runnerUp) {
+                    runnerUpsUpToEdition[runnerUp] = (runnerUpsUpToEdition[runnerUp] || 0) + 1;
+                }
             }
 
             const sortedTeams = teamsWithTitles.sort((a, b) => {
-                const titlesA = titlesUpToEdition[a];
-                const titlesB = titlesUpToEdition[b];
-                return titlesB - titlesA || a.localeCompare(b);
+                const titlesA = titlesUpToEdition[a] || 0;
+                const titlesB = titlesUpToEdition[b] || 0;
+                if (titlesB !== titlesA) return titlesB - titlesA;
+                const runnerA = runnerUpsUpToEdition[a] || 0;
+                const runnerB = runnerUpsUpToEdition[b] || 0;
+                if (runnerB !== runnerA) return runnerB - runnerA;
+                return a.localeCompare(b);
             });
 
             chart.data.labels = sortedTeams;
@@ -5270,7 +5415,7 @@
                 const shieldUrl = shieldsMap[item.team] || '';
                 const shieldImg = shieldUrl ? `<img src="${shieldUrl}" alt="Escudo de ${item.team}" width="24" height="24">` : '';
                 const teamCellClass = (item.team === "Ningún equipo" || item.team === "No se otorgó") ? 'team-cell disabled' : 'team-cell';
-                const managerCellClass = (item.manager === "No se otorgó" || item.manager === "No se celebró") ? 'manager-cell disabled' : 'manager-cell';
+                const managerCellClass = (item.manager === "No se otorgó" || item.manager !== "No se celebró") ? 'manager-cell disabled' : 'manager-cell';
                 const galaLink = (item.url && item.url !== "No se celebró" && item.url !== "No se otorgó") ? `<a href="${item.url}" target="_blank" class="gala-link" title="Ver gala de premios"><i class="fas fa-external-link-alt"></i></a>` : '—';
                 
                 const teamOnClick = (item.team !== "Ningún equipo" && item.team !== "No se otorgó") ? `onclick="showTeamAchievements('${item.team}')"` : '';
@@ -5594,6 +5739,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
+                    layout: type === 'bar' ? { padding: { top: 50 } } : {},
                     plugins: {
                         legend: {
                             display: type === 'doughnut',
