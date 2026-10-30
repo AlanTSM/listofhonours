@@ -967,6 +967,7 @@
             max-height: 400px;
             overflow-y: auto;
             padding-right: 1rem;
+            position: relative;
         }
 
         .achievements-scroll::-webkit-scrollbar {
@@ -987,6 +988,31 @@
 
         .achievements-scroll::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+        }
+
+        /* Fondo de salón de trofeos (semitransparente) a partir de la línea roja del h2 */
+        #team-achievements-modal .achievements-scroll::before,
+        #manager-achievements-modal .achievements-scroll::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://i.imgur.com/xn0bwCu.png');
+            background-size: cover;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            opacity: 0.12;
+            z-index: 0;
+            pointer-events: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        #team-achievements-modal .achievements-scroll > *,
+        #manager-achievements-modal .achievements-scroll > * {
+            position: relative;
+            z-index: 1;
         }
 
         #achievements-list-champ,
@@ -1729,17 +1755,6 @@
             font-size: 0.9rem;
         }
 
-        .ranking-note {
-            margin-bottom: 1rem;
-            padding: 0.8rem;
-            background-color: var(--secondary-color);
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            text-align: center;
-            border-left: 3px solid var(--accent-color);
-        }
-
         .footer-more-data {
             margin-top: 1.5rem;
             padding-top: 1.5rem;
@@ -1793,6 +1808,7 @@
             gap: 1rem;
             align-items: center;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
         .ranking-filter-row .search-input {
             width: 250px;
@@ -1922,6 +1938,47 @@
             background-color: var(--accent-color);
             color: white;
             border-color: var(--accent-color);
+        }
+
+        /* Sección ¿Sabías que... */
+        .sabias-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sabias-list li {
+            padding: 0.9rem 1.2rem;
+            margin-bottom: 0.6rem;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+            font-size: 1rem;
+            color: var(--text-color);
+            transition: all var(--transition-speed) ease;
+        }
+        .sabias-list li:hover {
+            transform: translateX(4px);
+            box-shadow: var(--card-shadow);
+        }
+        .sabias-list li strong {
+            color: var(--accent-color);
+        }
+
+        .ranking-filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .ranking-filter-checkbox input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-color);
+            cursor: pointer;
         }
 
         @media (max-width: 1200px) {
@@ -2221,6 +2278,18 @@
                 <div class="comparison-results" id="comparison-results"></div>
             </div>
         </div>
+
+        <!-- NUEVA SECCIÓN ¿SABÍAS QUE... -->
+        <div class="competition" id="sabias-section">
+            <div class="competition-header">
+                <span><i class="fas fa-lightbulb" style="margin-right:0.5rem;"></i> ¿Sabías que...</span>
+            </div>
+            <div class="competition-body">
+                <ul class="sabias-list" id="sabias-list">
+                    <!-- Se rellena dinámicamente -->
+                </ul>
+            </div>
+        </div>
         
         <div id="competitions-container"></div>
     </div>
@@ -2237,7 +2306,7 @@
             </a>
             <a href="#" class="footer-link" onclick="showRankingModal(); return false;">
                 <i class="fas fa-trophy"></i>
-                <span>Ranking</span>
+                <span>Rankings</span>
             </a>
         </div>
         <div class="footer-note">
@@ -2377,11 +2446,8 @@
     <div id="ranking-modal" class="modal">
         <div class="modal-content">
             <span class="close fas fa-times" onclick="closeAllModals()"></span>
-            <h2><i class="fas fa-trophy"></i> Ranking</h2>
+            <h2><i class="fas fa-trophy"></i> Rankings</h2>
             <div class="achievements-scroll">
-                <div class="ranking-note">
-                    <i class="fas fa-info-circle"></i> Las competiciones de filiales y femeninas no se incluyen en los rankings de clubes y selecciones.
-                </div>
                 <div class="tabs">
                     <button onclick="showRankingTab('clubs')" class="tab-button active">
                         <i class="fas fa-futbol"></i>
@@ -2404,6 +2470,12 @@
                         <option value="5">Últimas 5 temp.</option>
                         <option value="10">Últimas 10 temp.</option>
                     </select>
+                    <label id="filter-filiales-label" class="ranking-filter-checkbox" style="display:none;">
+                        <input type="checkbox" id="filter-filiales" onchange="applySeasonFilter()"> Filtrar filiales
+                    </label>
+                    <label id="filter-femeninas-label" class="ranking-filter-checkbox" style="display:none;">
+                        <input type="checkbox" id="filter-femeninas" onchange="applySeasonFilter()"> Filtrar selecciones femeninas
+                    </label>
                 </div>
                 <div id="country-filter-container" class="ranking-country-filter" style="display: none;">
                     <span class="ranking-filter-label">País:</span>
@@ -2503,6 +2575,14 @@
             { id: "liga-de-resto-de-europa-de-filiales", name: "Liga de resto de Europa de filiales" },
             { id: "liga-sudamericana-de-filiales", name: "Liga sudamericana de filiales" },
             { id: "youth-league", name: "Youth League" }
+        ];
+
+        // IDs de competiciones de filiales / sub-21 / youth
+        const filialCompetitionIds = [
+            "1ªsub-2123", "2ª-sub-21/23", "copa-tsm-sub-21/23",
+            "liga-alemana-de-filiales", "liga-española-de-filiales", "liga-francesa-de-filiales",
+            "liga-inglesa-de-filiales", "liga-italiana-de-filiales", "liga-norteamericana-de-filiales",
+            "liga-de-resto-de-europa-de-filiales", "liga-sudamericana-de-filiales", "youth-league"
         ];
 
         // Lista de IDs de competiciones que deben tener la pestaña "Por países"
@@ -3054,14 +3134,17 @@
                 document.getElementById('cards-container').classList.add('hidden');
                 document.getElementById('temporadas-section').classList.add('hidden');
                 document.getElementById('comparison-section').classList.add('hidden');
+                document.getElementById('sabias-section').classList.add('hidden');
             } else {
                 document.getElementById('cards-container').classList.remove('hidden');
                 document.getElementById('temporadas-section').classList.remove('hidden');
                 document.getElementById('comparison-section').classList.remove('hidden');
+                document.getElementById('sabias-section').classList.remove('hidden');
                 setTimeout(() => {
                     document.getElementById('cards-container').style.opacity = '1';
                     document.getElementById('temporadas-section').style.opacity = '1';
                     document.getElementById('comparison-section').style.opacity = '1';
+                    document.getElementById('sabias-section').style.opacity = '1';
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }, 10);
             }
@@ -4711,6 +4794,7 @@
                 calculateRankingData();
                 updateTopCards();
                 randomCompare();
+                fillSabiasQue();
                 competitions.forEach(comp => {
                     const rankings = document.getElementById(`rankings-${comp.id}`);
                     if (rankings && rankings.getAttribute('data-calculated') === 'false') {
@@ -5443,14 +5527,24 @@
             }
         }
 
+        // ========== RANKINGS GLOBALES (MODIFICADO) ==========
         function calculateRankingData(limit = 0) {
             let seasonsToInclude = [];
             if (limit > 0 && allSeasons.length > 0) {
                 seasonsToInclude = allSeasons.slice(0, Math.min(limit, allSeasons.length));
             }
 
+            const filterFiliales = document.getElementById('filter-filiales')?.checked || false;
+            const filterFemeninas = document.getElementById('filter-femeninas')?.checked || false;
+
+            // Clubes: todas las de clubes (senior + filiales) salvo si se filtra
             const clubStats = {};
-            competitions.slice(0, 45).forEach(comp => {
+            competitions.forEach(comp => {
+                const isFilial = filialCompetitionIds.includes(comp.id);
+                if (isFilial && filterFiliales) return;
+                // Solo competiciones de clubes (no selecciones)
+                if (comp.id === 'eurocopa-femenina' || (competitions.indexOf(comp) >= 45 && competitions.indexOf(comp) < 52)) return;
+
                 const tableContainer = document.getElementById(`table-${comp.id}-container`);
                 if (tableContainer) {
                     const rows = tableContainer.querySelectorAll('tbody tr');
@@ -5467,8 +5561,9 @@
                 .map(([name, trophies]) => ({ name, trophies }))
                 .sort((a, b) => b.trophies - a.trophies);
 
+            // Mánagers: todas las competiciones
             const managerStats = {};
-            competitions.slice(0, 52).forEach(comp => {
+            competitions.forEach(comp => {
                 const tableContainer = document.getElementById(`table-${comp.id}-container`);
                 if (tableContainer) {
                     const rows = tableContainer.querySelectorAll('tbody tr');
@@ -5487,8 +5582,15 @@
                 .map(([name, trophies]) => ({ name, trophies }))
                 .sort((a, b) => b.trophies - a.trophies);
 
+            // Selecciones: nacionales + femenina (salvo si se filtra)
             const selectionStats = {};
-            competitions.slice(45, 52).forEach(comp => {
+            competitions.forEach(comp => {
+                const isFemale = comp.id === 'eurocopa-femenina';
+                if (isFemale && filterFemeninas) return;
+                // Solo selecciones
+                const idx = competitions.indexOf(comp);
+                if (!(idx >= 45 && idx < 52) && !isFemale) return;
+
                 const tableContainer = document.getElementById(`table-${comp.id}-container`);
                 if (tableContainer) {
                     const rows = tableContainer.querySelectorAll('tbody tr');
@@ -5496,9 +5598,7 @@
                         const season = row.cells[0].textContent.trim().split('(')[0].trim();
                         if (limit > 0 && !seasonsToInclude.includes(season)) return;
                         const champion = row.cells[1].textContent.trim();
-                        if (allSelections.includes(champion)) {
-                            selectionStats[champion] = (selectionStats[champion] || 0) + 1;
-                        }
+                        selectionStats[champion] = (selectionStats[champion] || 0) + 1;
                     });
                 }
             });
@@ -5517,6 +5617,8 @@
                 setTimeout(() => { scrollContainer.scrollTop = 0; }, 50);
             }
             document.getElementById('season-filter').value = '0';
+            document.getElementById('filter-filiales').checked = false;
+            document.getElementById('filter-femeninas').checked = false;
             calculateRankingData(0);
             showRankingTab('clubs');
         }
@@ -5538,20 +5640,29 @@
             });
             
             const searchInput = document.getElementById('ranking-search');
+            const filialesLabel = document.getElementById('filter-filiales-label');
+            const femeninasLabel = document.getElementById('filter-femeninas-label');
+
             let count = 0;
             if (tab === 'clubs') {
                 count = rankingData.clubs.length;
                 searchInput.placeholder = `Buscar entre ${count} clubes...`;
                 document.getElementById('country-filter-container').style.display = 'flex';
+                filialesLabel.style.display = 'flex';
+                femeninasLabel.style.display = 'none';
                 populateCountryRankingFilter();
             } else if (tab === 'managers') {
                 count = rankingData.managers.length;
                 searchInput.placeholder = `Buscar entre ${count} mánagers...`;
                 document.getElementById('country-filter-container').style.display = 'none';
+                filialesLabel.style.display = 'none';
+                femeninasLabel.style.display = 'none';
             } else if (tab === 'selections') {
                 count = rankingData.selections.length;
                 searchInput.placeholder = `Buscar entre ${count} selecciones...`;
                 document.getElementById('country-filter-container').style.display = 'none';
+                filialesLabel.style.display = 'none';
+                femeninasLabel.style.display = 'flex';
             }
             
             filterRanking();
@@ -5760,6 +5871,77 @@
                     } : {}
                 }
             });
+        }
+
+        // ========== ¿SABÍAS QUE... ==========
+        function getManagerMostDifferentTeams() {
+            const managerTeams = {};
+            competitions.forEach(comp => {
+                const tableContainer = document.getElementById(`table-${comp.id}-container`);
+                if (!tableContainer) return;
+                tableContainer.querySelectorAll('tbody tr').forEach(row => {
+                    const manager = cleanManagerName(row.cells[3].textContent);
+                    const team = row.cells[1].textContent.trim();
+                    if (manager && manager !== "S.M.") {
+                        if (!managerTeams[manager]) managerTeams[manager] = new Set();
+                        managerTeams[manager].add(team);
+                    }
+                });
+            });
+            let max = 0, best = '—';
+            for (const [m, s] of Object.entries(managerTeams)) {
+                if (s.size > max) {
+                    max = s.size;
+                    best = m;
+                }
+            }
+            return best;
+        }
+
+        function getManagerMostRunnerUps() {
+            const counts = {};
+            competitions.forEach(comp => {
+                const tableContainer = document.getElementById(`table-${comp.id}-container`);
+                if (!tableContainer) return;
+                tableContainer.querySelectorAll('tbody tr').forEach(row => {
+                    const manager = cleanManagerName(row.cells[4].textContent);
+                    if (manager && manager !== "S.M.") {
+                        counts[manager] = (counts[manager] || 0) + 1;
+                    }
+                });
+            });
+            let max = 0, best = '—';
+            for (const [m, c] of Object.entries(counts)) {
+                if (c > max) {
+                    max = c;
+                    best = m;
+                }
+            }
+            return best;
+        }
+
+        function getDaysSinceFoundation() {
+            const foundation = new Date(2010, 1, 15); // 15 de febrero de 2010
+            const now = new Date();
+            const diff = now - foundation;
+            return Math.floor(diff / (1000 * 60 * 60 * 24));
+        }
+
+        function fillSabiasQue() {
+            const list = document.getElementById('sabias-list');
+            if (!list) return;
+
+            const mostTeamsManager = getManagerMostDifferentTeams();
+            const mostRunnerManager = getManagerMostRunnerUps();
+            const days = getDaysSinceFoundation();
+
+            list.innerHTML = `
+                <li>... <strong>${mostTeamsManager}</strong> es el mánager que ha ganado títulos con más equipos diferentes?</li>
+                <li>... el mánager que más subcampeonatos acumula es <strong>${mostRunnerManager}</strong>?</li>
+                <li>... no se disputó ninguna competición Europea durante la primera temporada?</li>
+                <li>... que la Eurocopa femenina de 2025 fue la primera competición femenina de la historia de TSM?</li>
+                <li>... que TSM se fundó hace exactamente <strong>${days.toLocaleString('es-ES')}</strong> días?</li>
+            `;
         }
 
         document.addEventListener('keydown', function(e) {
